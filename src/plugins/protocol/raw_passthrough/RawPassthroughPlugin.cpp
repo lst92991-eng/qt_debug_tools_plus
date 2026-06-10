@@ -15,9 +15,20 @@ void RawPassthroughPlugin::feedBytes(const QByteArray& raw)
 
     DataFrame frame;
     frame.timestamp_us = currentTimestampMicros();
-    frame.channels = {{0, std::numeric_limits<double>::quiet_NaN()}};
     frame.rawPayload = raw;
     frame.direction = FrameDirection::Receive;
+    frame.attributes.insert(QStringLiteral("sample_format"), QStringLiteral("raw_bytes"));
+
+    frame.channels.reserve(raw.size());
+    for (int i = 0; i < raw.size(); ++i) {
+        ChannelSample sample;
+        sample.index = static_cast<quint16>(i);
+        sample.value = static_cast<quint8>(raw.at(i));
+        sample.name = QStringLiteral("RX Byte %1").arg(i);
+        sample.unit = QStringLiteral("byte");
+        frame.channels.push_back(sample);
+    }
+
     emit frameParsed(frame);
 }
 

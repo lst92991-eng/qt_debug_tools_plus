@@ -1,10 +1,10 @@
 {
   "type": "protocol",
-  "name": "Raw Protocol",
+  "name": "Serial Numeric Protocol",
   "version": "1.0.0",
   "interface": "IProtocolPlugin",
   "author": "MCU Debug Tool",
-  "description": "Pass-through protocol that publishes raw bytes as chartable byte channels.",
+  "description": "Parses newline-delimited serial numeric text into chartable channels.",
   "platforms": ["windows", "linux", "macos"],
-  "priority": 100
+  "priority": 70
 }

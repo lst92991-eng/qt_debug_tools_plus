@@ -131,6 +131,12 @@ mcd_add_plugin(raw_passthrough protocol
     src/plugins/protocol/raw_passthrough/raw_passthrough.json
 )
 
+mcd_add_plugin(serial_numeric protocol
+    src/plugins/protocol/serial_numeric/SerialNumericPlugin.cpp
+    src/plugins/protocol/serial_numeric/SerialNumericPlugin.h
+    src/plugins/protocol/serial_numeric/serial_numeric.json
+)
+
 mcd_add_plugin(can_frame protocol
     src/plugins/protocol/can_frame/CanFramePlugin.cpp
     src/plugins/protocol/can_frame/CanFramePlugin.h

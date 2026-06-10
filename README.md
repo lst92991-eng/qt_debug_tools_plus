@@ -9,7 +9,8 @@ Qt 6 / C++17 implementation scaffold for the plugin-based MCU debugging tool des
 - Stage 3: P0/P1 plugins:
   - Serial (Generic) physical plugin via `QSerialPort`.
   - USB Raw (Linux) physical plugin via `libusb-1.0` when available.
-  - Raw Protocol pass-through parser/encoder.
+  - Raw Protocol pass-through parser/encoder with chartable raw byte channels.
+  - Serial Numeric Protocol for newline-delimited numbers, key/value samples, and simple JSON telemetry.
   - Raw Viewer with RX/TX timestamps, HEX/ASCII view, filtering, pause, clear, and detail dump.
   - Raw Control with HEX validation, history, periodic send, and quick-send presets.
 - Stage 4: P2/Future plugins and app features:
