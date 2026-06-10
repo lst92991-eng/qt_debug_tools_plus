@@ -1,0 +1,10 @@
+{
+    "qt-core.qtInstallationRoot": "D:\\App\\Qt",
+    "qt-core.additionalQtPaths": [
+        "D:\\App\\Qt\\6.11.0\\msvc2022_64\\bin\\qmake.exe"
+    ],
+    "qt-ui.customWidgetsDesignerExePath": "D:\\App\\Qt\\6.11.0\\msvc2022_64\\bin\\designer.exe",
+    "cmake.configureSettings": {
+        "CMAKE_PREFIX_PATH": "D:/App/Qt/6.11.0/msvc2022_64"
+    }
+}

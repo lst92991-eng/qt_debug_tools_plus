@@ -1,0 +1,10 @@
+{
+  "type": "physical",
+  "name": "CandleLight CANFD",
+  "version": "1.0.0",
+  "interface": "IPhysicalPlugin",
+  "author": "MCU Debug Tool",
+  "description": "CandleLight / CANable 2.5 CAN FD transport via WinUSB.",
+  "platforms": ["windows"],
+  "priority": 90
+}
