@@ -10,6 +10,7 @@ void registerMcuDebugMetaTypes()
     qRegisterMetaType<FrameDirection>("FrameDirection");
     qRegisterMetaType<ChannelSample>("ChannelSample");
     qRegisterMetaType<DataFrame>("DataFrame");
+    qRegisterMetaType<OverflowEvent>("OverflowEvent");
     qRegisterMetaType<QVector<ChannelSample>>("QVector<ChannelSample>");
 }
 

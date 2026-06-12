@@ -27,6 +27,10 @@ struct ChannelSample {
 struct DataFrame {
     // 微秒级 Unix 时间戳，主要用于跨插件显示、历史保存和用户排查日志。
     qint64 timestamp_us = 0;
+    // 核心蓄水池分配的最新写入水位。0 表示本帧没有进入数值蓄水池。
+    quint64 sequence = 0;
+    // 蓄水池清空或容量变化时递增，分发器据此重置自己的读取水位。
+    quint64 generation = 0;
     QVector<ChannelSample> channels;
     QByteArray rawPayload;
     // RX/TX 会同时进入可视化链路；UI 计数和 Raw Viewer 依赖该字段区分方向。
@@ -35,9 +39,18 @@ struct DataFrame {
     QVariantMap attributes;
 };
 
+struct OverflowEvent {
+    QString stage;
+    quint64 skippedSeq = 0;
+    quint64 droppedSamples = 0;
+    quint64 droppedFrames = 0;
+    qint64 timestamp_us = 0;
+};
+
 Q_DECLARE_METATYPE(FrameDirection)
 Q_DECLARE_METATYPE(ChannelSample)
 Q_DECLARE_METATYPE(DataFrame)
+Q_DECLARE_METATYPE(OverflowEvent)
 Q_DECLARE_METATYPE(QVector<ChannelSample>)
 
 void registerMcuDebugMetaTypes();

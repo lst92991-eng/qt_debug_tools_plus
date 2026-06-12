@@ -8,6 +8,7 @@
 #include <QMainWindow>
 #include <QPlainTextEdit>
 #include <QPushButton>
+#include <QSpinBox>
 #include <QStackedWidget>
 #include <QTabWidget>
 #include <QTableWidget>
@@ -48,6 +49,7 @@ private:
     void updateConfigPage();
     void appendActivity(const QString& message);
     void updateTrafficCounters();
+    void updatePoolStatus();
     void setConnected(bool connected);
     IPhysicalPlugin* selectedPhysical() const;
     IProtocolPlugin* selectedProtocol() const;
@@ -64,6 +66,8 @@ private:
     QLabel* m_pluginSummaryLabel = nullptr;
     QLabel* m_rxCounterLabel = nullptr;
     QLabel* m_txCounterLabel = nullptr;
+    QLabel* m_poolStatusLabel = nullptr;
+    QSpinBox* m_poolCapacitySpin = nullptr;
     QLabel* m_stagePhysicalValue = nullptr;
     QLabel* m_stageProtocolValue = nullptr;
     QLabel* m_configTitleLabel = nullptr;
@@ -81,4 +85,5 @@ private:
     QMetaObject::Connection m_activeStatusConnection;
     quint64 m_rxFrames = 0;
     quint64 m_txCommands = 0;
+    quint64 m_overflowEvents = 0;
 };

@@ -5,13 +5,16 @@
 #include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonDocument>
+#include <QMetaObject>
 #include <QSet>
 #include <QStringList>
+#include <QThread>
 
 #include <utility>
 
 PluginManager::PluginManager(QObject* parent)
     : QObject(parent)
+    , m_ownerThread(QThread::currentThread())
 {
 }
 
@@ -66,6 +69,11 @@ void PluginManager::scanPlugins(const QString& pluginDir)
     }
 }
 
+void PluginManager::setWorkerThread(QThread* thread)
+{
+    m_workerThread = thread;
+}
+
 QList<IPhysicalPlugin*> PluginManager::physicalPlugins() const
 {
     return m_physicalPlugins;
@@ -95,11 +103,14 @@ bool PluginManager::activatePhysical(const QString& name, const QVariantMap& con
 
         if (m_activePhysical && m_activePhysical != plugin) {
             // 同一进程只维护一个活动设备；多设备调试按设计应打开多个工具实例。
-            m_activePhysical->close();
+            closePhysicalInThread(m_activePhysical);
+            movePluginBackToOwner(m_activePhysical);
             emit physicalDeactivated();
         }
 
-        if (!plugin->open(config)) {
+        moveObjectToThread(plugin, m_workerThread);
+        if (!openPhysicalInThread(plugin, config)) {
+            movePluginBackToOwner(plugin);
             emit errorOccurred(tr("Failed to open physical plugin: %1").arg(name));
             return false;
         }
@@ -117,6 +128,10 @@ bool PluginManager::activateProtocol(const QString& name)
 {
     for (IProtocolPlugin* plugin : m_protocolPlugins) {
         if (plugin->name() == name) {
+            if (m_activeProtocol && m_activeProtocol != plugin) {
+                movePluginBackToOwner(m_activeProtocol);
+            }
+            moveObjectToThread(plugin, m_workerThread);
             m_activeProtocol = plugin;
             emit protocolActivated(plugin);
             return true;
@@ -130,9 +145,13 @@ bool PluginManager::activateProtocol(const QString& name)
 void PluginManager::deactivateAll()
 {
     if (m_activePhysical) {
-        m_activePhysical->close();
+        closePhysicalInThread(m_activePhysical);
+        movePluginBackToOwner(m_activePhysical);
         m_activePhysical = nullptr;
         emit physicalDeactivated();
+    }
+    if (m_activeProtocol) {
+        movePluginBackToOwner(m_activeProtocol);
     }
     m_activeProtocol = nullptr;
 }
@@ -252,4 +271,67 @@ QString PluginManager::currentPlatform() const
 #else
     return QStringLiteral("unknown");
 #endif
+}
+
+void PluginManager::moveObjectToThread(QObject* object, QThread* targetThread)
+{
+    if (!object || !targetThread || object->thread() == targetThread) {
+        return;
+    }
+
+    if (object->thread() == QThread::currentThread()) {
+        object->moveToThread(targetThread);
+        return;
+    }
+
+    QMetaObject::invokeMethod(
+        object,
+        [object, targetThread]() {
+            object->moveToThread(targetThread);
+        },
+        Qt::BlockingQueuedConnection);
+}
+
+void PluginManager::movePluginBackToOwner(QObject* object)
+{
+    moveObjectToThread(object, m_ownerThread ? m_ownerThread : QCoreApplication::instance()->thread());
+}
+
+bool PluginManager::openPhysicalInThread(IPhysicalPlugin* plugin, const QVariantMap& config)
+{
+    if (!plugin) {
+        return false;
+    }
+
+    bool opened = false;
+    if (plugin->thread() == QThread::currentThread()) {
+        opened = plugin->open(config);
+    } else {
+        QMetaObject::invokeMethod(
+            plugin,
+            [plugin, config, &opened]() {
+                opened = plugin->open(config);
+            },
+            Qt::BlockingQueuedConnection);
+    }
+    return opened;
+}
+
+void PluginManager::closePhysicalInThread(IPhysicalPlugin* plugin)
+{
+    if (!plugin) {
+        return;
+    }
+
+    if (plugin->thread() == QThread::currentThread()) {
+        plugin->close();
+        return;
+    }
+
+    QMetaObject::invokeMethod(
+        plugin,
+        [plugin]() {
+            plugin->close();
+        },
+        Qt::BlockingQueuedConnection);
 }

@@ -23,10 +23,11 @@ public:
     QVariantMap defaultConfig() const override;
 
 private:
+    void ensurePort();
     QSerialPort::Parity parseParity(const QString& value) const;
     QSerialPort::StopBits parseStopBits(int value) const;
     QSerialPort::DataBits parseDataBits(int value) const;
     QSerialPort::FlowControl parseFlowControl(const QString& value) const;
 
-    QSerialPort m_port;
+    QSerialPort* m_port = nullptr;
 };

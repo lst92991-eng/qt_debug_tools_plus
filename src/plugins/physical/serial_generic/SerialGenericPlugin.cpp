@@ -5,18 +5,6 @@
 SerialGenericPlugin::SerialGenericPlugin(QObject* parent)
     : IPhysicalPlugin(parent)
 {
-    // QSerialPort 在当前对象线程发 readyRead；DebugCore 后续会把 raw bytes 排队送入协议插件。
-    connect(&m_port, &QSerialPort::readyRead, this, [this]() {
-        const QByteArray data = m_port.readAll();
-        if (!data.isEmpty()) {
-            emit dataReceived(data);
-        }
-    });
-    connect(&m_port, &QSerialPort::errorOccurred, this, [this](QSerialPort::SerialPortError error) {
-        if (error != QSerialPort::NoError) {
-            emit errorOccurred(m_port.errorString());
-        }
-    });
 }
 
 SerialGenericPlugin::~SerialGenericPlugin()
@@ -27,6 +15,7 @@ SerialGenericPlugin::~SerialGenericPlugin()
 bool SerialGenericPlugin::open(const QVariantMap& config)
 {
     close();
+    ensurePort();
 
     const QVariantMap defaults = defaultConfig();
     // 配置表来自 UI 文本编辑，所有字段都按 QVariant 宽松读取，非法值回退到安全默认值。
@@ -36,15 +25,15 @@ bool SerialGenericPlugin::open(const QVariantMap& config)
         return false;
     }
 
-    m_port.setPortName(portName);
-    m_port.setBaudRate(config.value(QStringLiteral("baud"), defaults.value(QStringLiteral("baud"))).toInt());
-    m_port.setDataBits(parseDataBits(config.value(QStringLiteral("data_bits"), 8).toInt()));
-    m_port.setStopBits(parseStopBits(config.value(QStringLiteral("stop_bits"), 1).toInt()));
-    m_port.setParity(parseParity(config.value(QStringLiteral("parity"), QStringLiteral("none")).toString()));
-    m_port.setFlowControl(parseFlowControl(config.value(QStringLiteral("flow_control"), QStringLiteral("none")).toString()));
+    m_port->setPortName(portName);
+    m_port->setBaudRate(config.value(QStringLiteral("baud"), defaults.value(QStringLiteral("baud"))).toInt());
+    m_port->setDataBits(parseDataBits(config.value(QStringLiteral("data_bits"), 8).toInt()));
+    m_port->setStopBits(parseStopBits(config.value(QStringLiteral("stop_bits"), 1).toInt()));
+    m_port->setParity(parseParity(config.value(QStringLiteral("parity"), QStringLiteral("none")).toString()));
+    m_port->setFlowControl(parseFlowControl(config.value(QStringLiteral("flow_control"), QStringLiteral("none")).toString()));
 
-    if (!m_port.open(QIODevice::ReadWrite)) {
-        emit errorOccurred(m_port.errorString());
+    if (!m_port->open(QIODevice::ReadWrite)) {
+        emit errorOccurred(m_port->errorString());
         emit statusChanged(false);
         return false;
     }
@@ -55,24 +44,24 @@ bool SerialGenericPlugin::open(const QVariantMap& config)
 
 void SerialGenericPlugin::close()
 {
-    if (m_port.isOpen()) {
-        m_port.close();
+    if (m_port && m_port->isOpen()) {
+        m_port->close();
         emit statusChanged(false);
     }
 }
 
 bool SerialGenericPlugin::isOpen() const
 {
-    return m_port.isOpen();
+    return m_port && m_port->isOpen();
 }
 
 qint64 SerialGenericPlugin::write(const QByteArray& data)
 {
-    if (!m_port.isOpen()) {
+    if (!m_port || !m_port->isOpen()) {
         emit errorOccurred(tr("Serial port is not open"));
         return -1;
     }
-    return m_port.write(data);
+    return m_port->write(data);
 }
 
 QString SerialGenericPlugin::name() const
@@ -102,6 +91,27 @@ QVariantMap SerialGenericPlugin::defaultConfig() const
         {QStringLiteral("parity"), QStringLiteral("none")},
         {QStringLiteral("flow_control"), QStringLiteral("none")}
     };
+}
+
+void SerialGenericPlugin::ensurePort()
+{
+    if (m_port) {
+        return;
+    }
+
+    // 串口对象必须在采集线程内创建；否则 readyRead 仍会回到 UI 线程，违背线程分层。
+    m_port = new QSerialPort(this);
+    connect(m_port, &QSerialPort::readyRead, this, [this]() {
+        const QByteArray data = m_port->readAll();
+        if (!data.isEmpty()) {
+            emit dataReceived(data);
+        }
+    });
+    connect(m_port, &QSerialPort::errorOccurred, this, [this](QSerialPort::SerialPortError error) {
+        if (error != QSerialPort::NoError) {
+            emit errorOccurred(m_port->errorString());
+        }
+    });
 }
 
 QSerialPort::Parity SerialGenericPlugin::parseParity(const QString& value) const

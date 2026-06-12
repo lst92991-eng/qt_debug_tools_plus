@@ -11,6 +11,7 @@
 #include <QPluginLoader>
 #include <QScopedPointer>
 #include <QString>
+#include <QThread>
 #include <QVariantMap>
 
 class PluginManager : public QObject {
@@ -21,6 +22,7 @@ public:
 
     void clear();
     void scanPlugins(const QString& pluginDir);
+    void setWorkerThread(QThread* thread);
 
     QList<IPhysicalPlugin*> physicalPlugins() const;
     QList<IProtocolPlugin*> protocolPlugins() const;
@@ -54,6 +56,10 @@ private:
     bool metadataMatchesType(const QJsonObject& meta, const QString& expectedType) const;
     bool metadataSupportsCurrentPlatform(const QJsonObject& meta) const;
     QString currentPlatform() const;
+    void moveObjectToThread(QObject* object, QThread* targetThread);
+    void movePluginBackToOwner(QObject* object);
+    bool openPhysicalInThread(IPhysicalPlugin* plugin, const QVariantMap& config);
+    void closePhysicalInThread(IPhysicalPlugin* plugin);
 
     // 这些列表只缓存 QPluginLoader 创建出的 QObject 视图，不拥有插件实例。
     // 所有权在 m_loaded.loader，clear() 是唯一卸载入口。
@@ -62,6 +68,8 @@ private:
     QList<IProtocolPlugin*> m_protocolPlugins;
     QList<IVisualPlugin*> m_visualPlugins;
     QList<IControlPlugin*> m_controlPlugins;
+    QThread* m_workerThread = nullptr;
+    QThread* m_ownerThread = nullptr;
     IPhysicalPlugin* m_activePhysical = nullptr;
     IProtocolPlugin* m_activeProtocol = nullptr;
 };

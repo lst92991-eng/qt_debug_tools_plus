@@ -6,6 +6,8 @@
 #include "sdk/DataFrame.h"
 
 #include <QObject>
+#include <QReadWriteLock>
+#include <QThread>
 #include <QVariantMap>
 
 class DebugCore : public QObject {
@@ -16,6 +18,8 @@ public:
     PluginManager* pluginManager();
     ChannelHub* channelHub();
     RingBufferPool* ringBufferPool();
+
+    ~DebugCore() override;
 
     void initialize();
     void publish(const DataFrame& frame);
@@ -28,6 +32,7 @@ signals:
     void framePublished(const DataFrame& frame);
     void errorOccurred(const QString& message);
     void commandSent(const QByteArray& bytes);
+    void overflowOccurred(const OverflowEvent& event);
 
 private:
     explicit DebugCore(QObject* parent = nullptr);
@@ -35,10 +40,13 @@ private:
 
     // DebugCore 是进程内唯一的数据中枢：APP 只和它交互，插件之间不互相持有。
     // 这样重扫插件、切换协议、替换物理层时，断线重连只需要重接这里的三条信号。
+    QThread m_ingestThread;
+    QThread m_dispatchThread;
     PluginManager m_pluginMgr;
     ChannelHub m_channelHub;
     RingBufferPool m_ringPool;
     QVariantMap m_channelMetadata;
+    mutable QReadWriteLock m_metadataLock;
     QMetaObject::Connection m_physicalDataConnection;
     QMetaObject::Connection m_physicalErrorConnection;
     QMetaObject::Connection m_protocolFrameConnection;

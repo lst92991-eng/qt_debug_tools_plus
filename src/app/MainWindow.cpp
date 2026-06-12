@@ -22,6 +22,8 @@
 #include <QSerialPort>
 #include <QSerialPortInfo>
 #include <QSet>
+#include <QSignalBlocker>
+#include <QSpinBox>
 #include <QStatusBar>
 #include <QStyle>
 #include <QTableWidget>
@@ -53,10 +55,24 @@ MainWindow::MainWindow(QWidget* parent)
         ++m_txCommands;
         updateTrafficCounters();
     });
+    connect(m_core, &DebugCore::overflowOccurred, this, [this](const OverflowEvent& event) {
+        ++m_overflowEvents;
+        if (event.droppedSamples > 0) {
+            appendActivity(tr("Overflow at %1: dropped %2 sample(s)")
+                               .arg(event.stage)
+                               .arg(event.droppedSamples));
+        } else if (event.skippedSeq > 0) {
+            appendActivity(tr("Overflow at %1: skipped %2 sequence(s)")
+                               .arg(event.stage)
+                               .arg(event.skippedSeq));
+        }
+        updatePoolStatus();
+    });
 
     scanPlugins();
     populatePluginUi();
     setConnected(false);
+    updatePoolStatus();
 }
 
 MainWindow::~MainWindow()
@@ -130,6 +146,22 @@ void MainWindow::buildUi()
     m_configTable->verticalHeader()->setDefaultSectionSize(26);
     m_configTable->setColumnWidth(0, 136);
 
+    auto* poolRow = new QHBoxLayout;
+    poolRow->setSpacing(6);
+    auto* poolLabel = new QLabel(tr("Pool samples:"), this);
+    m_poolCapacitySpin = new QSpinBox(this);
+    m_poolCapacitySpin->setRange(1000, 1000000);
+    m_poolCapacitySpin->setSingleStep(10000);
+    m_poolCapacitySpin->setValue(m_core->ringBufferPool()->maxSamples());
+    m_poolCapacitySpin->setFixedHeight(28);
+    m_poolCapacitySpin->setMinimumWidth(112);
+    m_poolStatusLabel = new QLabel(this);
+    m_poolStatusLabel->setText(tr("Pool: -"));
+    poolRow->addWidget(poolLabel);
+    poolRow->addWidget(m_poolCapacitySpin);
+    poolRow->addWidget(m_poolStatusLabel, 1);
+    m_ui->counterLayout->addLayout(poolRow);
+
     m_ui->mainSplitter->setSizes({285, 1020});
     m_ui->editorSplitter->setSizes({760, 340});
     m_ui->verticalSplitter->setSizes({620, 180});
@@ -153,6 +185,11 @@ void MainWindow::buildUi()
     connect(m_ui->saveHistoryButton, &QPushButton::clicked, this, &MainWindow::saveHistory);
     connect(m_ui->loadHistoryButton, &QPushButton::clicked, this, &MainWindow::loadHistory);
     connect(m_ui->clearHistoryButton, &QPushButton::clicked, this, &MainWindow::clearHistory);
+    connect(m_poolCapacitySpin, qOverload<int>(&QSpinBox::valueChanged), this, [this](int value) {
+        m_core->ringBufferPool()->configureCapacity(value);
+        updatePoolStatus();
+        appendActivity(tr("Pool capacity set to %1 samples").arg(value));
+    });
 
     connect(m_configButton, &QPushButton::clicked, this, &MainWindow::applySelectedPhysicalConfig);
     connect(m_connectButton, &QPushButton::clicked, this, &MainWindow::connectDevice);
@@ -372,6 +409,7 @@ void MainWindow::saveHistory()
         statusBar()->showMessage(tr("Failed to save history: %1").arg(error), 6000);
         return;
     }
+    updatePoolStatus();
     appendActivity(tr("Saved history to %1").arg(QDir::toNativeSeparators(path)));
     statusBar()->showMessage(tr("History saved"), 3000);
 }
@@ -392,6 +430,11 @@ void MainWindow::loadHistory()
         statusBar()->showMessage(tr("Failed to load history: %1").arg(error), 6000);
         return;
     }
+    if (m_poolCapacitySpin) {
+        const QSignalBlocker blocker(m_poolCapacitySpin);
+        m_poolCapacitySpin->setValue(m_core->ringBufferPool()->maxSamples());
+    }
+    updatePoolStatus();
     appendActivity(tr("Loaded history from %1").arg(QDir::toNativeSeparators(path)));
     statusBar()->showMessage(tr("History loaded"), 3000);
 }
@@ -400,7 +443,9 @@ void MainWindow::clearHistory()
 {
     m_core->ringBufferPool()->clear();
     m_rxFrames = 0;
+    m_overflowEvents = 0;
     updateTrafficCounters();
+    updatePoolStatus();
     appendActivity(tr("Cleared history"));
     statusBar()->showMessage(tr("History cleared"), 3000);
 }
@@ -520,6 +565,9 @@ void MainWindow::detachPluginPages()
             QWidget* page = m_visualTabs->widget(0);
             m_visualTabs->removeTab(0);
             if (page) {
+                if (auto* plugin = qobject_cast<IVisualPlugin*>(page)) {
+                    m_core->channelHub()->unsubscribe(plugin);
+                }
                 page->setParent(nullptr);
             }
         }
@@ -652,6 +700,19 @@ void MainWindow::updateTrafficCounters()
 {
     m_rxCounterLabel->setText(tr("RX frames: %1").arg(m_rxFrames));
     m_txCounterLabel->setText(tr("TX commands: %1").arg(m_txCommands));
+}
+
+void MainWindow::updatePoolStatus()
+{
+    if (!m_poolStatusLabel) {
+        return;
+    }
+    const PoolSnapshot snapshot = m_core->ringBufferPool()->snapshot();
+    m_poolStatusLabel->setText(tr("Pool: %1/%2 samples, gen %3, overflow %4")
+                                   .arg(snapshot.totalSamples)
+                                   .arg(snapshot.maxSamples)
+                                   .arg(snapshot.generation)
+                                   .arg(m_overflowEvents));
 }
 
 void MainWindow::setConnected(bool connected)
