@@ -24,6 +24,7 @@ void RingBuffer::push(TimedSample sample)
     head = (head + 1) % capacity;
     sampleCount = std::min(sampleCount + 1, capacity);
 
+    // 满缓冲覆盖时，写完后 head 已移动到“当前最老样本”，用它更新历史窗口左边界。
     if (sampleCount == capacity) {
         oldest_ts = data[head].timestamp_us;
     } else if (sampleCount == 1) {
@@ -37,6 +38,7 @@ QVector<TimedSample> RingBuffer::range(qint64 from_us, qint64 to_us) const
     const int count = std::min(sampleCount, static_cast<int>(data.size()));
     result.reserve(count);
 
+    // 物理存储是环形的，回放必须从逻辑最老样本开始，保证图表/保存文件时间顺序稳定。
     for (int i = 0; i < count; ++i) {
         const int idx = (head - count + i + data.size()) % data.size();
         const TimedSample sample = data[idx];
@@ -68,6 +70,7 @@ void RingBufferPool::push(quint16 channelIdx, TimedSample sample)
 {
     QWriteLocker locker(&m_lock);
     RingBuffer& buffer = m_buffers[channelIdx];
+    // 新通道才套用构造时指定的默认容量；已加载/已写入的通道保留自身容量。
     if (buffer.capacity != m_defaultCapacity && buffer.data.isEmpty()) {
         buffer.capacity = m_defaultCapacity;
     }
@@ -112,6 +115,7 @@ bool RingBufferPool::saveToFile(const QString& path, QString* errorMessage) cons
     QReadLocker locker(&m_lock);
     QDataStream out(&file);
     out.setVersion(QDataStream::Qt_6_0);
+    // 自定义 magic/version 让以后扩展文件格式时能明确拒绝不兼容历史文件。
     out << kRingFileMagic << kRingFileVersion << static_cast<quint32>(m_buffers.size());
 
     QList<quint16> channels = m_buffers.keys();
@@ -160,6 +164,7 @@ bool RingBufferPool::loadFromFile(const QString& path, QString* errorMessage)
 
         RingBuffer buffer;
         buffer.capacity = static_cast<int>(std::max<quint32>(1, capacity));
+        // 通过 push 重建 head/sampleCount/oldest_ts，避免手工恢复环形状态出错。
         for (quint32 sampleIndex = 0; sampleIndex < sampleCount; ++sampleIndex) {
             TimedSample sample;
             in >> sample.timestamp_us >> sample.value;

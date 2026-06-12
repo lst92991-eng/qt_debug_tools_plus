@@ -33,6 +33,8 @@ private:
     explicit DebugCore(QObject* parent = nullptr);
     void wireDataPath();
 
+    // DebugCore 是进程内唯一的数据中枢：APP 只和它交互，插件之间不互相持有。
+    // 这样重扫插件、切换协议、替换物理层时，断线重连只需要重接这里的三条信号。
     PluginManager m_pluginMgr;
     ChannelHub m_channelHub;
     RingBufferPool m_ringPool;

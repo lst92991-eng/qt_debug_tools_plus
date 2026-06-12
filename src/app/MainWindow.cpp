@@ -43,8 +43,9 @@ MainWindow::MainWindow(QWidget* parent)
         appendActivity(tr("Error: %1").arg(message));
     });
     connect(m_core, &DebugCore::framePublished, this, [this](const DataFrame& frame) {
-        Q_UNUSED(frame)
-        ++m_rxFrames;
+        if (frame.direction == FrameDirection::Receive) {
+            ++m_rxFrames;
+        }
         updateTrafficCounters();
     });
     connect(m_core, &DebugCore::commandSent, this, [this](const QByteArray& bytes) {

@@ -41,3 +41,8 @@ On this Windows setup the verified build command is:
 & 'C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe' --build build-vs18 --config Release --parallel
 .\build-vs18\bin\Release\mcd_app.exe --smoke-test
 ```
+
+## Design Docs
+
+- `docs/realtime-pool-refactor-plan.md`: realtime pool refactor plan with ingest, dispatch, and UI thread responsibilities.
+- `docs/plugin-development-spec.md`: plugin development flow and design rules for physical, protocol, visual, and control plugins.

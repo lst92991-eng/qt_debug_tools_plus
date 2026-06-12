@@ -14,6 +14,8 @@ public:
     virtual QString name() const = 0;
 
 signals:
+    // 控制插件只描述“要发送什么”，真正的协议编码和物理写入由 DebugCore 串起来。
+    // 常用键：bytes/hex/text/channel/value/period_ms；未知键会作为 TX attributes 保留。
     void commandGenerated(const QVariantMap& command);
 };
 

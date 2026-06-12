@@ -105,6 +105,7 @@ void SliderWidgetPlugin::buildUi()
 void SliderWidgetPlugin::emitValue(int value)
 {
     QVariantMap command;
+    // channel/value 给协议插件做语义编码，bytes 则提供一个默认可直接发送的 SL 小帧。
     command.insert(QStringLiteral("channel"), m_channel->value());
     command.insert(QStringLiteral("value"), value);
     command.insert(QStringLiteral("bytes"), encodeValue(value));
@@ -115,6 +116,7 @@ void SliderWidgetPlugin::emitValue(int value)
 QByteArray SliderWidgetPlugin::encodeValue(int value) const
 {
     QByteArray bytes;
+    // "SL" + channel(大端) + value(小端) 是本控件的简易默认协议，方便 Raw/串口快速联调。
     bytes.append(static_cast<char>(0x53));
     bytes.append(static_cast<char>(0x4c));
     bytes.append(static_cast<char>((m_channel->value() >> 8) & 0xff));

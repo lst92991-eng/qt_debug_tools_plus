@@ -42,6 +42,7 @@ signals:
 
 private:
     struct LoadedPlugin {
+        // loader 必须活得比插件实例久；m_loaded 清理时先 unload，再释放 LoadedPlugin。
         QScopedPointer<QPluginLoader> loader;
         QString path;
         QJsonObject meta;
@@ -54,6 +55,8 @@ private:
     bool metadataSupportsCurrentPlatform(const QJsonObject& meta) const;
     QString currentPlatform() const;
 
+    // 这些列表只缓存 QPluginLoader 创建出的 QObject 视图，不拥有插件实例。
+    // 所有权在 m_loaded.loader，clear() 是唯一卸载入口。
     QList<LoadedPlugin*> m_loaded;
     QList<IPhysicalPlugin*> m_physicalPlugins;
     QList<IProtocolPlugin*> m_protocolPlugins;

@@ -44,6 +44,7 @@ bool RawControlPlugin::eventFilter(QObject* watched, QEvent* event)
 {
     if (watched == m_input && event->type() == QEvent::KeyPress) {
         auto* keyEvent = static_cast<QKeyEvent*>(event);
+        // 命令行式历史浏览：上/下键只影响输入框，不抢其它控件的键盘事件。
         if (keyEvent->key() == Qt::Key_Up && !m_history.isEmpty()) {
             if (m_historyIndex < 0) {
                 m_historyIndex = m_history.size() - 1;
@@ -188,6 +189,7 @@ void RawControlPlugin::sendCurrent(bool periodic)
     }
 
     QVariantMap command;
+    // 同时放 bytes 和 hex：协议插件优先用 bytes，日志/会话仍能展示用户输入的十六进制文本。
     command.insert(QStringLiteral("bytes"), parseHex(normalized));
     command.insert(QStringLiteral("hex"), normalized);
     if (periodic) {
@@ -249,6 +251,7 @@ void RawControlPlugin::loadPresets()
 {
     QFile file(presetsPath());
     if (!file.open(QIODevice::ReadOnly)) {
+        // 首次启动给两个无害示例，帮助用户看到预设列表的交互形态。
         m_presets = {
             {QStringLiteral("Ping"), QStringLiteral("A5 00 01 FF")},
             {QStringLiteral("Zero"), QStringLiteral("00")}
@@ -304,6 +307,7 @@ void RawControlPlugin::refreshPresetList()
 QString RawControlPlugin::presetsPath() const
 {
     const QString base = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
+    // 预设是用户偏好，不随工程构建输出走，避免重编译/清 build 时丢失。
     return QDir(base).filePath(QStringLiteral("raw_control_presets.json"));
 }
 

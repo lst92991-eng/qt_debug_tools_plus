@@ -60,6 +60,8 @@ void DebugCore::publish(const DataFrame& frame)
 {
     DataFrame enriched = frame;
     for (ChannelSample& sample : enriched.channels) {
+        // 通道名/单位可能来自协议帧，也可能来自用户编辑的通道表。
+        // 优先保留协议实时提供的信息；协议没给时再用用户元数据补齐。
         const QString key = QString::number(sample.index);
         const QVariantMap existing = m_channelMetadata.value(key).toMap();
         if (!existing.isEmpty()) {
@@ -77,6 +79,7 @@ void DebugCore::publish(const DataFrame& frame)
             meta.insert(QStringLiteral("unit"), sample.unit);
             m_channelMetadata.insert(key, meta);
         }
+        // NaN 表示 raw-only 样本，不进入数值历史，避免 Raw Viewer 的二进制流污染图表数据。
         if (!std::isnan(sample.value)) {
             m_ringPool.push(sample.index, {enriched.timestamp_us, sample.value});
         }
@@ -91,6 +94,7 @@ void DebugCore::sendCommand(const QVariantMap& command)
     IProtocolPlugin* protocol = m_pluginMgr.activeProtocol();
     IPhysicalPlugin* physical = m_pluginMgr.activePhysical();
 
+    // 控制插件可以直接给 bytes，也可以给协议相关字段；有活动协议时统一走协议编码。
     QByteArray bytes;
     if (protocol) {
         bytes = protocol->encodeCommand(command);
@@ -114,6 +118,7 @@ void DebugCore::sendCommand(const QVariantMap& command)
         return;
     }
 
+    // TX 也发布为 DataFrame，让 Raw Viewer、日志和会话记录能看到完整双向流量。
     DataFrame txFrame;
     txFrame.timestamp_us = currentTimestampMicros();
     txFrame.channels = {{0, std::numeric_limits<double>::quiet_NaN()}};
@@ -145,6 +150,7 @@ void DebugCore::setChannelMetadata(const QVariantMap& metadata)
 
 void DebugCore::wireDataPath()
 {
+    // 每次切换物理层或协议层都先断开旧连接，避免同一批字节被多个旧插件重复解析。
     QObject::disconnect(m_physicalDataConnection);
     QObject::disconnect(m_physicalErrorConnection);
     QObject::disconnect(m_protocolFrameConnection);
@@ -166,6 +172,7 @@ void DebugCore::wireDataPath()
     }
 
     if (physical && protocol) {
+        // 物理插件可能在工作线程发信号，QueuedConnection 保证协议解析回到接收者线程执行。
         m_physicalDataConnection = connect(
             physical, &IPhysicalPlugin::dataReceived,
             protocol, &IProtocolPlugin::feedBytes,

@@ -13,6 +13,7 @@ struct TimedSample {
 
 struct RingBuffer {
     QVector<TimedSample> data;
+    // head 永远指向下一次写入位置；缓冲满后 head 同时也是最老样本的位置。
     int head = 0;
     int capacity = 1'000'000;
     qint64 oldest_ts = 0;
@@ -36,6 +37,7 @@ public:
     void clear();
 
 private:
+    // 多个 UI 插件可能同时读历史，协议路径会持续写入，因此这里用读写锁保护整池。
     int m_defaultCapacity;
     QHash<quint16, RingBuffer> m_buffers;
     mutable QReadWriteLock m_lock;

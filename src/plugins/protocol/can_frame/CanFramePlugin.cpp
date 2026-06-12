@@ -31,6 +31,8 @@ QByteArray CanFramePlugin::encodeCommand(const QVariantMap& command)
         payload.truncate(64);
     }
 
+    // 本插件约定的上位机封包：0xCA 0xFD + 32-bit CAN ID(大端) + DLC + payload。
+    // 这里不是标准 CAN 总线字节流，而是 USB/串口承载 CAN FD 调试帧的轻量外壳。
     QByteArray frame;
     frame.append(static_cast<char>(0xCA));
     frame.append(static_cast<char>(0xFD));
@@ -79,10 +81,12 @@ void CanFramePlugin::parseBuffer()
     while (m_buffer.size() >= 7) {
         const int start = m_buffer.indexOf(QByteArray::fromHex("cafd"));
         if (start < 0) {
+            // 找不到帧头时全部丢弃；保留任意尾字节反而可能让坏流量无限堆积。
             m_buffer.clear();
             return;
         }
         if (start > 0) {
+            // 丢弃帧头前噪声，实现流式重同步。
             m_buffer.remove(0, start);
         }
         if (m_buffer.size() < 7) {
@@ -96,6 +100,7 @@ void CanFramePlugin::parseBuffer()
             | static_cast<quint8>(m_buffer.at(5));
         const int dlc = static_cast<quint8>(m_buffer.at(6));
         if (dlc > 64) {
+            // CAN FD 最大 64 字节，非法 DLC 只跳过帧头两个字节，给后续真实帧头留重同步机会。
             m_buffer.remove(0, 2);
             continue;
         }
@@ -116,6 +121,7 @@ void CanFramePlugin::parseBuffer()
 
         for (int i = 0; i < payload.size(); ++i) {
             ChannelSample sample;
+            // 11-bit ID * 64 + byte offset 生成图表通道，能让同一帧的不同字节稳定落在不同曲线上。
             sample.index = static_cast<quint16>((canId & 0x7ff) * 64 + i);
             sample.value = static_cast<quint8>(payload.at(i));
             sample.name = QStringLiteral("CAN%1[%2]").arg(canId, 0, 16).arg(i).toUpper();
@@ -123,6 +129,7 @@ void CanFramePlugin::parseBuffer()
             frame.channels.push_back(sample);
         }
         if (frame.channels.isEmpty()) {
+            // 空 payload 帧仍发布 rawPayload/attributes，Raw Viewer 可以看到它；通道用 NaN 标记 raw-only。
             frame.channels = {{static_cast<quint16>(canId & 0xffff), std::numeric_limits<double>::quiet_NaN()}};
         }
         emit frameParsed(frame);

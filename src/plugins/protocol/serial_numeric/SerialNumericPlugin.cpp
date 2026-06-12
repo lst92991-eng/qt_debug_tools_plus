@@ -48,6 +48,7 @@ QString SerialNumericPlugin::version() const
 void SerialNumericPlugin::parseBuffer()
 {
     while (true) {
+        // 同时兼容 \n、\r、\r\n；嵌入式串口打印经常混用这些换行风格。
         int end = m_buffer.indexOf('\n');
         int cr = m_buffer.indexOf('\r');
         if (cr >= 0 && (end < 0 || cr < end)) {
@@ -85,6 +86,7 @@ void SerialNumericPlugin::parseBuffer()
 
         for (const ParsedValue& value : std::as_const(values)) {
             if (!std::isfinite(value.value)) {
+                // NaN/Inf 不进图表，避免坐标轴范围被异常文本样本拖坏。
                 continue;
             }
             ChannelSample sample;
@@ -101,12 +103,14 @@ void SerialNumericPlugin::parseBuffer()
 
     constexpr int maxBufferedBytes = 4096;
     if (m_buffer.size() > maxBufferedBytes) {
+        // 长时间没有换行说明上游格式异常，保留尾部可恢复数据，防止内存被坏流量撑开。
         m_buffer = m_buffer.right(maxBufferedBytes);
     }
 }
 
 bool SerialNumericPlugin::parseLine(const QString& line, QVector<ParsedValue>* values) const
 {
+    // 解析优先级从结构化到宽松：JSON 最明确，key=value 次之，最后才把整行当纯数字列表。
     return parseJsonLine(line, values)
         || parseKeyValueLine(line, values)
         || parseDelimitedNumbers(line, values);
@@ -215,6 +219,7 @@ quint16 SerialNumericPlugin::channelForName(const QString& name)
     if (m_nextChannel < std::numeric_limits<quint16>::max()) {
         ++m_nextChannel;
     }
+    // 达到 quint16 上限后会复用 65535，这比溢出回 0 更容易暴露通道数量异常。
     m_channels.insert(key, channel);
     return channel;
 }

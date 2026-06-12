@@ -48,9 +48,11 @@ private:
     QCheckBox* m_autoScroll = nullptr;
     QToolButton* m_pauseButton = nullptr;
     QLineEdit* m_filter = nullptr;
+    // 高频串口/USB 数据先进入 m_pending，由 16ms 定时器批量刷 UI，避免每帧改文档导致卡顿。
     QTimer m_flushTimer;
     QVector<PacketEntry> m_entries;
     QVector<PacketEntry> m_pending;
+    // 文本控件启用最大 block 数后会自动丢旧行，因此这里维护“可见行 -> m_entries 下标”的映射。
     QVector<int> m_displayedEntryIndexes;
     int m_maxEntries = 50000;
 };

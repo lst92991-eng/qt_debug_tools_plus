@@ -33,7 +33,9 @@ private:
     static QString normalizedName(const QString& name, int fallbackIndex);
     static QByteArray parseHexString(const QString& text);
 
+    // 串口可能任意分片到达，m_buffer 只存尚未遇到换行符的尾巴。
     QByteArray m_buffer;
+    // 同名通道保持稳定编号，避免曲线在运行中因 JSON 字段顺序变化而跳线。
     QHash<QString, quint16> m_channels;
     quint16 m_nextChannel = 0;
 };

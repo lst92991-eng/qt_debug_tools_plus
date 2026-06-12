@@ -29,6 +29,7 @@ void PluginManager::clear()
     m_controlPlugins.clear();
     for (LoadedPlugin* loaded : std::as_const(m_loaded)) {
         if (loaded->loader) {
+            // 卸载动态库前必须先让活动物理连接关闭，否则后台读线程可能仍在库代码里运行。
             loaded->loader->unload();
         }
     }
@@ -93,6 +94,7 @@ bool PluginManager::activatePhysical(const QString& name, const QVariantMap& con
         }
 
         if (m_activePhysical && m_activePhysical != plugin) {
+            // 同一进程只维护一个活动设备；多设备调试按设计应打开多个工具实例。
             m_activePhysical->close();
             emit physicalDeactivated();
         }
@@ -158,6 +160,7 @@ void PluginManager::loadPluginFile(const QString& path)
     loaded->path = path;
     loaded->meta = loaded->loader->metaData().value("MetaData").toObject();
     if (!metadataSupportsCurrentPlatform(loaded->meta)) {
+        // 平台不匹配不是错误：Windows/Linux 插件会同时出现在源码树里，运行时只加载本平台。
         delete loaded;
         return;
     }
@@ -177,6 +180,7 @@ void PluginManager::loadPluginFile(const QString& path)
 
 void PluginManager::registerInstance(QObject* instance, const QJsonObject& meta)
 {
+    // 接口类型由 qobject_cast 验证，JSON type 只作为额外防线，防止插件放错目录或元数据写错。
     if (auto* plugin = qobject_cast<IPhysicalPlugin*>(instance)) {
         if (metadataMatchesType(meta, "physical")) {
             m_physicalPlugins.append(plugin);

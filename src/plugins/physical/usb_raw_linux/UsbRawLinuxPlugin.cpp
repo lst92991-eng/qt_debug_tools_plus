@@ -18,6 +18,7 @@ bool UsbRawLinuxPlugin::open(const QVariantMap& config)
 
 #if defined(Q_OS_LINUX) && defined(MCD_HAVE_LIBUSB)
     const QVariantMap defaults = defaultConfig();
+    // VID/PID/端点允许写成 "0x0483" 或十进制，便于直接复制设备手册里的值。
     const int vid = parseHexInt(config.value(QStringLiteral("vid"), defaults.value(QStringLiteral("vid"))), 0);
     const int pid = parseHexInt(config.value(QStringLiteral("pid"), defaults.value(QStringLiteral("pid"))), 0);
     m_epOut = parseHexInt(config.value(QStringLiteral("ep_out"), defaults.value(QStringLiteral("ep_out"))), 0x01);
@@ -47,6 +48,8 @@ bool UsbRawLinuxPlugin::open(const QVariantMap& config)
     }
 
     if (libusb_kernel_driver_active(m_handle, m_interfaceNumber) == 1) {
+        // 调试类设备常被系统驱动占用；先 detach 才能 claim 接口。
+        // 这里没有自动 reattach，避免关闭时把用户原本的驱动状态猜错。
         libusb_detach_kernel_driver(m_handle, m_interfaceNumber);
     }
 
@@ -62,6 +65,7 @@ bool UsbRawLinuxPlugin::open(const QVariantMap& config)
 
     m_running = true;
     m_open = true;
+    // libusb_bulk_transfer 是阻塞调用，放入独立线程避免拖住 Qt UI 线程。
     m_worker = QThread::create([this]() { readLoop(); });
     m_worker->setObjectName(QStringLiteral("usb-raw-linux-reader"));
     m_worker->start();
@@ -79,6 +83,7 @@ void UsbRawLinuxPlugin::close()
 {
     m_running = false;
     if (m_worker) {
+        // readLoop 最多等一次 transfer timeout 后退出；因此 timeout_ms 不宜配置得过大。
         m_worker->quit();
         m_worker->wait();
         delete m_worker;
@@ -117,6 +122,7 @@ qint64 UsbRawLinuxPlugin::write(const QByteArray& data)
         return -1;
     }
 
+    // 读写共享同一个 libusb handle，用互斥锁保护，避免并发 bulk_transfer 打架。
     QMutexLocker locker(&m_ioMutex);
     int transferred = 0;
     const int rc = libusb_bulk_transfer(
@@ -205,6 +211,7 @@ void UsbRawLinuxPlugin::readLoop()
         }
 
         if (rc == LIBUSB_ERROR_TIMEOUT) {
+            // 超时是轮询等待的一部分，不代表设备断开。
             continue;
         }
 

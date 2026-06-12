@@ -5,6 +5,7 @@
 SerialGenericPlugin::SerialGenericPlugin(QObject* parent)
     : IPhysicalPlugin(parent)
 {
+    // QSerialPort 在当前对象线程发 readyRead；DebugCore 后续会把 raw bytes 排队送入协议插件。
     connect(&m_port, &QSerialPort::readyRead, this, [this]() {
         const QByteArray data = m_port.readAll();
         if (!data.isEmpty()) {
@@ -28,6 +29,7 @@ bool SerialGenericPlugin::open(const QVariantMap& config)
     close();
 
     const QVariantMap defaults = defaultConfig();
+    // 配置表来自 UI 文本编辑，所有字段都按 QVariant 宽松读取，非法值回退到安全默认值。
     const QString portName = config.value(QStringLiteral("port"), defaults.value(QStringLiteral("port"))).toString();
     if (portName.isEmpty()) {
         emit errorOccurred(tr("Serial port is empty"));
@@ -88,6 +90,7 @@ QVariantMap SerialGenericPlugin::defaultConfig() const
     QString defaultPort;
     const QList<QSerialPortInfo> ports = QSerialPortInfo::availablePorts();
     if (!ports.isEmpty()) {
+        // 默认选第一个端口只是为了降低首次试用成本，真正连接前用户仍可在配置表中修改。
         defaultPort = ports.first().portName();
     }
 

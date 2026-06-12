@@ -69,6 +69,7 @@ QString findDevicePath(const GUID& guid, int vid, int pid)
 
         const QString path = QString::fromWCharArray(detail->DevicePath);
         const QString lower = path.toLower();
+        // WinUSB 枚举依赖设备接口 GUID；VID/PID 只做二次过滤，允许用户只填 GUID 调试自定义设备。
         const QString vidNeedle = QStringLiteral("vid_%1").arg(vid, 4, 16, QLatin1Char('0')).toLower();
         const QString pidNeedle = QStringLiteral("pid_%1").arg(pid, 4, 16, QLatin1Char('0')).toLower();
         if ((vid <= 0 || lower.contains(vidNeedle)) && (pid <= 0 || lower.contains(pidNeedle))) {
@@ -94,6 +95,7 @@ bool UsbRawWinPlugin::open(const QVariantMap& config)
 
     const QVariantMap defaults = defaultConfig();
     GUID guid = {};
+    // Windows Raw USB 不能只靠 VID/PID 打开设备，必须由驱动暴露 device interface GUID。
     if (!parseGuid(config.value(QStringLiteral("device_guid"), defaults.value(QStringLiteral("device_guid"))).toString(), &guid)) {
         emit errorOccurred(tr("USB Raw (Windows) requires a WinUSB device interface GUID"));
         return false;
@@ -137,6 +139,7 @@ bool UsbRawWinPlugin::open(const QVariantMap& config)
 
     m_running = true;
     m_open = true;
+    // WinUSB 读循环放到工作线程，避免设备无数据时阻塞主线程。
     m_worker = QThread::create([this]() { readLoop(); });
     m_worker->setObjectName(QStringLiteral("usb-raw-win-reader"));
     m_worker->start();
@@ -191,6 +194,7 @@ qint64 UsbRawWinPlugin::write(const QByteArray& data)
         return -1;
     }
 
+    // WinUSB handle 与读线程共享，所有同步 WinUSB 调用都串行化。
     QMutexLocker locker(&m_ioMutex);
     unsigned long transferred = 0;
     if (!WinUsb_WritePipe(
@@ -278,6 +282,7 @@ void UsbRawWinPlugin::readLoop()
 
         const DWORD error = GetLastError();
         if (error == ERROR_SEM_TIMEOUT || error == ERROR_IO_PENDING || error == ERROR_OPERATION_ABORTED) {
+            // 这些状态都可能出现在关闭或超时轮询路径上，不作为致命错误上报。
             continue;
         }
 

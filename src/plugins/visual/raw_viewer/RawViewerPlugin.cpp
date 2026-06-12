@@ -74,6 +74,7 @@ void RawViewerPlugin::onChannelData(const DataFrame& frame)
     entry.payload = frame.rawPayload;
 
     if (m_pauseButton->isChecked()) {
+        // 暂停只冻结可见日志，不丢本插件缓存；取消暂停时 rebuildVisibleLog 会补回这些行。
         appendEntry(entry);
         return;
     }
@@ -155,6 +156,17 @@ void RawViewerPlugin::buildUi()
         m_log->clear();
         m_detail->clear();
     });
+    connect(m_pauseButton, &QToolButton::toggled, this, [this](bool paused) {
+        if (paused) {
+            // 暂停前已经排队但尚未刷新的包先并入缓存，保证恢复后仍按时间顺序显示。
+            for (const PacketEntry& entry : std::as_const(m_pending)) {
+                appendEntry(entry);
+            }
+            m_pending.clear();
+        } else {
+            rebuildVisibleLog();
+        }
+    });
     connect(m_filter, &QLineEdit::textChanged, this, &RawViewerPlugin::rebuildVisibleLog);
     connect(m_log, &QPlainTextEdit::cursorPositionChanged, this, &RawViewerPlugin::updateDetailPane);
 }
@@ -165,6 +177,7 @@ void RawViewerPlugin::appendEntry(const PacketEntry& entry)
     if (m_entries.size() > m_maxEntries) {
         const int removeCount = m_entries.size() - m_maxEntries;
         m_entries.remove(0, removeCount);
+        // m_entries 裁剪后，所有“可见行 -> entry 下标”的映射都要同步左移。
         for (int& index : m_displayedEntryIndexes) {
             index -= removeCount;
         }
@@ -184,6 +197,7 @@ void RawViewerPlugin::flushPending()
     QString batch;
     batch.reserve(m_pending.size() * 96);
 
+    // 一次性拼好文本再插入，比逐包 appendPlainText 少很多 QTextDocument 重排。
     for (const PacketEntry& entry : std::as_const(m_pending)) {
         appendEntry(entry);
         const int entryIndex = m_entries.size() - 1;
@@ -332,6 +346,7 @@ QByteArray RawViewerPlugin::filterBytes() const
     QString compact = m_filter->text();
     compact.remove(QRegularExpression(QStringLiteral("[\\s,;:_-]")));
     if (compact.isEmpty() || compact.size() % 2 != 0) {
+        // 半个字节或空过滤条件都按“不过滤”处理，避免用户输入过程中日志突然清空。
         return {};
     }
 
