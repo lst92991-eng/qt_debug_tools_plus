@@ -1,0 +1,10 @@
+{
+  "type": "visual",
+  "name": "MagNav Viewer",
+  "version": "0.1.0",
+  "interface": "IVisualPlugin",
+  "author": "MCU Debug Tool",
+  "description": "Magnetic navigation sensor monitor with LED states, branch status, and field-strength bars.",
+  "platforms": ["windows", "linux", "macos"],
+  "priority": 35
+}

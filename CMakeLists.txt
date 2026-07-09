@@ -161,6 +161,22 @@ mcd_add_plugin(gauge visual
     src/plugins/visual/gauge/gauge.json
 )
 
+mcd_add_plugin(mag_nav_viewer visual
+    src/plugins/visual/mag_nav_viewer/MagNavPanel.cpp
+    src/plugins/visual/mag_nav_viewer/MagNavPanel.h
+    src/plugins/visual/mag_nav_viewer/MagNavViewerPlugin.cpp
+    src/plugins/visual/mag_nav_viewer/MagNavViewerPlugin.h
+    src/plugins/visual/mag_nav_viewer/mag_nav_viewer.json
+)
+
+add_executable(mag_nav_viewer_screenshot
+    src/plugins/visual/mag_nav_viewer/MagNavPanel.cpp
+    src/plugins/visual/mag_nav_viewer/MagNavPanel.h
+    src/plugins/visual/mag_nav_viewer/MagNavScreenshot.cpp
+)
+target_include_directories(mag_nav_viewer_screenshot PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src")
+target_link_libraries(mag_nav_viewer_screenshot PRIVATE mcd_sdk Qt6::Core Qt6::Widgets)
+
 mcd_add_plugin(raw_control control
     src/plugins/control/raw_control/RawControlPlugin.cpp
     src/plugins/control/raw_control/RawControlPlugin.h
