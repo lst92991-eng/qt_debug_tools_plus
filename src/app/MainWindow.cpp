@@ -259,6 +259,10 @@ void MainWindow::connectDevice()
         return;
     }
 
+    // Use the values currently visible in the editor even when the user
+    // clicks Connect without pressing Apply Config first.
+    applySelectedPhysicalConfig();
+
     PluginManager* manager = m_core->pluginManager();
     if (!manager->activateProtocol(protocol->name())) {
         return;
@@ -266,7 +270,16 @@ void MainWindow::connectDevice()
 
     QObject::disconnect(m_activeStatusConnection);
     const QVariantMap config = m_physicalConfigs.value(physical->name(), physical->defaultConfig());
-    appendActivity(tr("Opening %1 through %2").arg(physical->name(), protocol->name()));
+    const QString port = config.value(QStringLiteral("port")).toString();
+    if (port.isEmpty()) {
+        appendActivity(tr("Opening %1 through %2").arg(physical->name(), protocol->name()));
+    } else {
+        appendActivity(tr("Opening %1 on %2 at %3 baud through %4")
+                           .arg(physical->name())
+                           .arg(port)
+                           .arg(config.value(QStringLiteral("baud")).toInt())
+                           .arg(protocol->name()));
+    }
     if (!manager->activatePhysical(physical->name(), config)) {
         setConnected(false);
         return;

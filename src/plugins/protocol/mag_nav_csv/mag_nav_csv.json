@@ -1,0 +1,10 @@
+{
+  "type": "protocol",
+  "name": "MagNav CSV Protocol",
+  "version": "1.0.0",
+  "interface": "IProtocolPlugin",
+  "author": "MCU Debug Tool",
+  "description": "Parses 13-field MagNav CSV lines and publishes the final eight sensor channels.",
+  "platforms": ["windows", "linux", "macos"],
+  "priority": 100
+}

@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="660" viewBox="0 0 980 660">
+  <rect width="980" height="660" fill="#f4f8fc"/>
+  <rect x="18" y="18" width="944" height="624" rx="8" fill="#fbfdff" stroke="#bbcfe0"/>
+  <text x="40" y="58" font-family="DejaVu Sans, Arial" font-size="28" font-weight="700" fill="#18374e">MagNav Sensor Monitor</text>
+  <rect x="850" y="36" width="92" height="28" rx="14" fill="#2cac66"/>
+  <text x="866" y="56" font-family="DejaVu Sans, Arial" font-size="14" font-weight="700" fill="#fff">ONLINE</text>
+  <text x="40" y="91" font-family="DejaVu Sans, Arial" font-size="14" fill="#5d7486">Source: Demo / CAN 0x181   Threshold: 25   Max: CH11=84   Offset: 16.6</text>
+  <rect x="70" y="105" width="240" height="34" rx="17" fill="#e6f2fb" stroke="#74b7e0"/><text x="115" y="128" font-family="DejaVu Sans, Arial" font-size="16" font-weight="700" fill="#256893">Left branch  -8</text>
+  <rect x="370" y="105" width="240" height="34" rx="17" fill="#e6f2fb" stroke="#74b7e0"/><text x="424" y="128" font-family="DejaVu Sans, Arial" font-size="16" font-weight="700" fill="#256893">Straight  -5</text>
+  <rect x="670" y="105" width="240" height="34" rx="17" fill="#46a0e8" stroke="#74b7e0"/><text x="713" y="128" font-family="DejaVu Sans, Arial" font-size="16" font-weight="700" fill="#fff">Right branch  -2</text>
+  <rect x="68" y="170" width="844" height="112" rx="6" fill="#252b31" stroke="#12181f" stroke-width="2"/>
+  <rect x="76" y="204" width="828" height="44" fill="#269f91"/>
+  <text x="325" y="228" font-family="DejaVu Sans, Arial" font-size="16" font-weight="700" fill="#fff">AGV Magnetic Navigation Sensor</text>
+  <text x="378" y="245" font-family="DejaVu Sans, Arial" font-size="12" fill="#fff">multi-channel magnetic field strength</text>
+  <g stroke="#15191d" stroke-width="2">
+    <circle cx="117" cy="258" r="8" fill="#656f77"/><circle cx="166" cy="258" r="8" fill="#656f77"/><circle cx="215" cy="258" r="8" fill="#656f77"/><circle cx="264" cy="258" r="8" fill="#656f77"/>
+    <circle cx="313" cy="258" r="8" fill="#656f77"/><circle cx="362" cy="258" r="8" fill="#73dd40"/><circle cx="411" cy="258" r="8" fill="#73dd40"/><circle cx="460" cy="258" r="8" fill="#73dd40"/>
+    <circle cx="509" cy="258" r="8" fill="#73dd40"/><circle cx="558" cy="258" r="8" fill="#73dd40"/><circle cx="607" cy="258" r="8" fill="#73dd40"/><circle cx="656" cy="258" r="8" fill="#ffda56"/>
+    <circle cx="705" cy="258" r="8" fill="#73dd40"/><circle cx="754" cy="258" r="8" fill="#73dd40"/><circle cx="803" cy="258" r="8" fill="#73dd40"/><circle cx="852" cy="258" r="8" fill="#73dd40"/>
+  </g>
+  <rect x="50" y="314" width="880" height="316" rx="5" fill="#f8fcff" stroke="#c7dbe8"/>
+  <g font-family="DejaVu Sans, Arial" font-size="14" fill="#59829b" text-anchor="middle">
+    <g fill="#ecf6fc" stroke="#b5d5e6"><rect x="56" y="330" width="49" height="268" rx="4"/><rect x="111" y="330" width="49" height="268" rx="4"/><rect x="166" y="330" width="49" height="268" rx="4"/><rect x="221" y="330" width="49" height="268" rx="4"/><rect x="276" y="330" width="49" height="268" rx="4"/><rect x="331" y="330" width="49" height="268" rx="4"/><rect x="386" y="330" width="49" height="268" rx="4"/><rect x="441" y="330" width="49" height="268" rx="4"/><rect x="496" y="330" width="49" height="268" rx="4"/><rect x="551" y="330" width="49" height="268" rx="4"/><rect x="606" y="330" width="49" height="268" rx="4"/><rect x="661" y="330" width="49" height="268" rx="4"/><rect x="716" y="330" width="49" height="268" rx="4"/><rect x="771" y="330" width="49" height="268" rx="4"/><rect x="826" y="330" width="49" height="268" rx="4"/><rect x="881" y="330" width="43" height="268" rx="4"/></g>
+    <g fill="#4ba0ee"><rect x="57" y="593" width="47" height="5" rx="3"/><rect x="112" y="593" width="47" height="5" rx="3"/><rect x="167" y="582" width="47" height="16" rx="3"/><rect x="222" y="574" width="47" height="24" rx="3"/><rect x="277" y="560" width="47" height="38" rx="3"/><rect x="332" y="526" width="47" height="72" rx="3"/><rect x="387" y="504" width="47" height="94" rx="3"/><rect x="442" y="472" width="47" height="126" rx="3"/><rect x="497" y="445" width="47" height="153" rx="3"/><rect x="552" y="416" width="47" height="182" rx="3"/><rect x="607" y="389" width="47" height="209" rx="3"/><rect x="717" y="413" width="47" height="185" rx="3"/><rect x="772" y="434" width="47" height="164" rx="3"/><rect x="827" y="448" width="47" height="150" rx="3"/><rect x="882" y="488" width="41" height="110" rx="3"/></g>
+    <rect x="662" y="373" width="47" height="225" rx="3" fill="#ffc246"/>
+    <text x="80" y="470">2</text><text x="135" y="470">2</text><text x="190" y="470">6</text><text x="245" y="470">9</text><text x="300" y="470">14</text><text x="355" y="470">27</text><text x="410" y="470">35</text><text x="465" y="470">47</text><text x="520" y="470">57</text><text x="575" y="470">68</text><text x="630" y="470">78</text><text x="685" y="470">84</text><text x="740" y="470">69</text><text x="795" y="470">61</text><text x="850" y="470">56</text><text x="903" y="470">41</text>
+  </g>
+</svg>
