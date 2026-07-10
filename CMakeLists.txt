@@ -137,6 +137,20 @@ mcd_add_plugin(serial_numeric protocol
     src/plugins/protocol/serial_numeric/serial_numeric.json
 )
 
+mcd_add_plugin(mag_nav_csv protocol
+    src/plugins/protocol/mag_nav_csv/MagNavCsvProtocolPlugin.cpp
+    src/plugins/protocol/mag_nav_csv/MagNavCsvProtocolPlugin.h
+    src/plugins/protocol/mag_nav_csv/mag_nav_csv.json
+)
+
+add_executable(mag_nav_csv_smoke
+    src/plugins/protocol/mag_nav_csv/MagNavCsvProtocolPlugin.cpp
+    src/plugins/protocol/mag_nav_csv/MagNavCsvProtocolPlugin.h
+    src/plugins/protocol/mag_nav_csv/MagNavCsvSmoke.cpp
+)
+target_include_directories(mag_nav_csv_smoke PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src")
+target_link_libraries(mag_nav_csv_smoke PRIVATE mcd_sdk Qt6::Core Qt6::Widgets)
+
 mcd_add_plugin(can_frame protocol
     src/plugins/protocol/can_frame/CanFramePlugin.cpp
     src/plugins/protocol/can_frame/CanFramePlugin.h

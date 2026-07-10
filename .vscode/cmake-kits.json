@@ -14,7 +14,7 @@
     },
     "environmentVariables": {
       "VSCODE_QT_INSTALLATION": "D:\\App\\Qt\\6.11.0\\msvc2022_64",
-      "PATH": "D:\\App\\Qt\\6.11.0\\msvc2022_64\\bin;${env:PATH};D:\\App\\Qt\\Tools\\Ninja"
+      "PATH": "D:\\App\\Qt\\6.11.0\\msvc2022_64\\bin;${env:PATH}"
     },
     "toolchainFile": "D:\\App\\Qt\\6.11.0\\msvc2022_64\\lib\\cmake\\Qt6\\qt.toolchain.cmake"
   },

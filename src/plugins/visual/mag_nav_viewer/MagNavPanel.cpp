@@ -12,8 +12,7 @@ MagNavPanel::MagNavPanel(QWidget* parent)
 {
     setAttribute(Qt::WA_OpaquePaintEvent);
     setMinimumSize(760, 520);
-    loadDemoData();
-    m_ageTimer.start();
+    initializeChannels();
 }
 
 void MagNavPanel::setFrame(const DataFrame& frame)
@@ -39,9 +38,15 @@ void MagNavPanel::setFrame(const DataFrame& frame)
         m_labels.push_back(sample.name.isEmpty() ? QStringLiteral("CH%1").arg(m_labels.size()) : sample.name);
     }
 
-    m_leftBranch = frame.attributes.value(QStringLiteral("left_branch"), m_leftBranch).toDouble();
-    m_straight = frame.attributes.value(QStringLiteral("straight"), m_straight).toDouble();
-    m_rightBranch = frame.attributes.value(QStringLiteral("right_branch"), m_rightBranch).toDouble();
+    const bool hasBranchData = frame.attributes.contains(QStringLiteral("left_branch"))
+        || frame.attributes.contains(QStringLiteral("straight"))
+        || frame.attributes.contains(QStringLiteral("right_branch"));
+    if (hasBranchData) {
+        m_leftBranch = frame.attributes.value(QStringLiteral("left_branch"), m_leftBranch).toDouble();
+        m_straight = frame.attributes.value(QStringLiteral("straight"), m_straight).toDouble();
+        m_rightBranch = frame.attributes.value(QStringLiteral("right_branch"), m_rightBranch).toDouble();
+        m_hasBranchData = true;
+    }
     m_threshold = frame.attributes.value(QStringLiteral("threshold"), m_threshold).toDouble();
     if (frame.attributes.contains(QStringLiteral("can_id"))) {
         m_source = QStringLiteral("CAN 0x%1").arg(frame.attributes.value(QStringLiteral("can_id")).toUInt(), 0, 16).toUpper();
@@ -70,15 +75,15 @@ void MagNavPanel::paintEvent(QPaintEvent* event)
 
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
-    painter.fillRect(rect(), QColor(244, 248, 252));
+    painter.fillRect(rect(), QColor(30, 30, 30));
 
     const QRect area = rect().adjusted(18, 18, -18, -18);
-    painter.setPen(QPen(QColor(187, 207, 222), 1));
-    painter.setBrush(QColor(251, 253, 255));
+    painter.setPen(QPen(QColor(60, 60, 60), 1));
+    painter.setBrush(QColor(37, 37, 38));
     painter.drawRoundedRect(area, 8, 8);
 
     const QRect header(area.left() + 18, area.top() + 14, area.width() - 36, 54);
-    painter.setPen(QColor(24, 55, 78));
+    painter.setPen(QColor(245, 245, 245));
     painter.setFont(QFont(painter.font().family(), 18, QFont::Bold));
     painter.drawText(header, Qt::AlignVCenter | Qt::AlignLeft, tr("MagNav Sensor Monitor"));
 
@@ -91,57 +96,50 @@ void MagNavPanel::paintEvent(QPaintEvent* event)
     painter.setPen(Qt::white);
     painter.drawText(QRect(header.right() - 104, header.top() + 10, 92, 28), Qt::AlignCenter, status);
 
-    painter.setFont(QFont(painter.font().family(), 10));
-    painter.setPen(QColor(93, 116, 134));
-    painter.drawText(QRect(header.left(), header.top() + 32, header.width(), 20), Qt::AlignLeft,
-                     tr("Source: %1   Threshold: %2   Max: CH%3=%4   Offset: %5")
-                         .arg(m_source)
-                         .arg(m_threshold, 0, 'f', 0)
-                         .arg(maxChannel())
-                         .arg(maxValue(), 0, 'f', 0)
-                         .arg(centerOffset() * 10.0, 0, 'f', 1));
-
     const QRect branchRect(area.left() + 22, area.top() + 84, area.width() - 44, 46);
     const QVector<QPair<QString, double>> branches = {
         {tr("Left branch"), m_leftBranch},
         {tr("Straight"), m_straight},
         {tr("Right branch"), m_rightBranch},
     };
-    int bestBranch = 0;
+    int bestBranch = -1;
     double bestScore = std::numeric_limits<double>::infinity();
-    for (int i = 0; i < branches.size(); ++i) {
-        const double score = std::abs(branches.at(i).second);
-        if (score < bestScore) {
-            bestScore = score;
-            bestBranch = i;
+    if (m_hasBranchData) {
+        for (int i = 0; i < branches.size(); ++i) {
+            const double score = std::abs(branches.at(i).second);
+            if (score < bestScore) {
+                bestScore = score;
+                bestBranch = i;
+            }
         }
     }
     const int branchWidth = branchRect.width() / 3;
     for (int i = 0; i < branches.size(); ++i) {
         const QRect chip(branchRect.left() + i * branchWidth + 16, branchRect.top() + 4, branchWidth - 32, 34);
         const bool active = i == bestBranch;
-        painter.setBrush(active ? QColor(70, 160, 232) : QColor(230, 242, 251));
-        painter.setPen(QPen(QColor(116, 183, 224), 1));
+        painter.setBrush(active ? QColor(14, 99, 156) : QColor(45, 45, 48));
+        painter.setPen(QPen(active ? QColor(17, 119, 187) : QColor(76, 76, 76), 1));
         painter.drawRoundedRect(chip, 17, 17);
-        painter.setPen(active ? Qt::white : QColor(37, 104, 147));
+        painter.setPen(active ? Qt::white : QColor(212, 212, 212));
         painter.setFont(QFont(painter.font().family(), 11, QFont::Bold));
-        painter.drawText(chip, Qt::AlignCenter, QStringLiteral("%1  %2").arg(branches.at(i).first).arg(branches.at(i).second, 0, 'f', 0));
+        const QString text = m_hasBranchData
+            ? QStringLiteral("%1  %2").arg(branches.at(i).first).arg(branches.at(i).second, 0, 'f', 0)
+            : branches.at(i).first;
+        painter.drawText(chip, Qt::AlignCenter, text);
     }
 
     const QRect sensor(area.left() + 50, area.top() + 150, area.width() - 100, 112);
-    painter.setBrush(QColor(37, 43, 49));
-    painter.setPen(QPen(QColor(18, 24, 31), 2));
+    painter.setBrush(QColor(24, 25, 28));
+    painter.setPen(QPen(QColor(70, 70, 72), 2));
     painter.drawRoundedRect(sensor, 6, 6);
-    painter.setBrush(QColor(38, 159, 145));
+    painter.setBrush(QColor(28, 133, 123));
     painter.setPen(Qt::NoPen);
     painter.drawRect(sensor.adjusted(8, 34, -8, -34));
     painter.setPen(Qt::white);
     painter.setFont(QFont(painter.font().family(), 14, QFont::Bold));
     painter.drawText(sensor.adjusted(0, 28, 0, -26), Qt::AlignCenter, tr("AGV Magnetic Navigation Sensor"));
-    painter.setFont(QFont(painter.font().family(), 8));
-    painter.drawText(sensor.adjusted(0, 54, 0, -12), Qt::AlignCenter, tr("multi-channel magnetic field strength"));
 
-    const int count = std::max(1, m_values.size());
+    const int count = std::max(1, static_cast<int>(m_values.size()));
     const int ledSpacing = sensor.width() / (count + 1);
     for (int i = 0; i < count; ++i) {
         const double value = i < m_values.size() ? m_values.at(i) : 0.0;
@@ -154,8 +152,8 @@ void MagNavPanel::paintEvent(QPaintEvent* event)
     }
 
     const QRect chart(area.left() + 32, area.top() + 286, area.width() - 64, area.bottom() - area.top() - 314);
-    painter.setPen(QColor(199, 219, 232));
-    painter.setBrush(QColor(248, 252, 255));
+    painter.setPen(QColor(60, 60, 60));
+    painter.setBrush(QColor(30, 30, 30));
     painter.drawRoundedRect(chart, 5, 5);
 
     const int gap = 6;
@@ -166,24 +164,26 @@ void MagNavPanel::paintEvent(QPaintEvent* event)
         const int barMaxHeight = chart.height() - 48;
         const int h = static_cast<int>(barMaxHeight * normalizedValue(value));
         const QRect rail(x, chart.top() + 16, barWidth, barMaxHeight);
-        painter.setBrush(QColor(236, 246, 252));
-        painter.setPen(QPen(QColor(181, 213, 230), 1));
+        painter.setBrush(QColor(45, 45, 48));
+        painter.setPen(QPen(QColor(76, 76, 76), 1));
         painter.drawRoundedRect(rail, 4, 4);
         QRect fill(rail.left() + 1, rail.bottom() - h + 1, rail.width() - 2, std::max(2, h - 1));
         painter.setPen(Qt::NoPen);
-        painter.setBrush(i == maxChannel() ? QColor(255, 194, 70) : QColor(75, 160, 238));
+        painter.setBrush(i == maxChannel() ? QColor(204, 167, 0) : QColor(55, 148, 255));
         painter.drawRoundedRect(fill, 3, 3);
-        painter.setPen(QColor(89, 130, 155));
+        painter.setPen(QColor(220, 220, 220));
         painter.setFont(QFont(painter.font().family(), 9, QFont::Bold));
         painter.drawText(rail, Qt::AlignCenter, QString::number(value, 'f', 0));
         painter.setFont(QFont(painter.font().family(), 8));
+        painter.setPen(QColor(156, 156, 156));
         painter.drawText(QRect(x - 2, chart.bottom() - 25, barWidth + 4, 18), Qt::AlignCenter, QStringLiteral("%1").arg(i));
     }
 }
 
-void MagNavPanel::loadDemoData()
+void MagNavPanel::initializeChannels()
 {
-    m_values = {2, 2, 6, 9, 14, 27, 35, 47, 57, 68, 78, 84, 69, 61, 56, 41};
+    constexpr int channelCount = 8;
+    m_values.fill(0.0, channelCount);
     m_labels.clear();
     for (int i = 0; i < m_values.size(); ++i) {
         m_labels.push_back(QStringLiteral("MAG%1").arg(i));
@@ -212,8 +212,8 @@ double MagNavPanel::centerOffset() const
 
 int MagNavPanel::maxChannel() const
 {
-    if (m_values.isEmpty()) {
-        return 0;
+    if (m_values.isEmpty() || maxValue() <= 0.0) {
+        return -1;
     }
     return static_cast<int>(std::distance(m_values.begin(), std::max_element(m_values.begin(), m_values.end())));
 }

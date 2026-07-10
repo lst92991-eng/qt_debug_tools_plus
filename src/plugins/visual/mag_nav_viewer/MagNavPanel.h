@@ -19,7 +19,7 @@ protected:
     void paintEvent(QPaintEvent* event) override;
 
 private:
-    void loadDemoData();
+    void initializeChannels();
     double normalizedValue(double value) const;
     double centerOffset() const;
     int maxChannel() const;
@@ -29,10 +29,11 @@ private:
     QVector<double> m_values;
     QStringList m_labels;
     double m_threshold = 25.0;
-    double m_leftBranch = -8.0;
-    double m_straight = -5.0;
-    double m_rightBranch = -2.0;
-    QString m_source = QStringLiteral("Demo / CAN 0x181");
+    double m_leftBranch = 0.0;
+    double m_straight = 0.0;
+    double m_rightBranch = 0.0;
+    bool m_hasBranchData = false;
+    QString m_source = QStringLiteral("Waiting for data");
     qint64 m_lastTimestampUs = 0;
     QElapsedTimer m_ageTimer;
 };
