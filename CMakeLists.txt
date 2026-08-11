@@ -45,6 +45,8 @@ target_include_directories(mcd_core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src")
 target_link_libraries(mcd_core PUBLIC mcd_sdk Qt6::Core Qt6::Widgets)
 
 add_executable(mcd_app
+    src/app/AgvCanFdTest.cpp
+    src/app/AgvCanFdTest.h
     src/app/DeviceConfigDialog.cpp
     src/app/DeviceConfigDialog.h
     src/app/MainWindow.cpp
@@ -53,11 +55,22 @@ add_executable(mcd_app
     src/app/main.cpp
 )
 target_link_libraries(mcd_app PRIVATE mcd_core Qt6::Core Qt6::Widgets Qt6::SerialPort)
-add_custom_command(TARGET mcd_app POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "$<TARGET_FILE:Qt6::SerialPort>"
-        "$<TARGET_FILE_DIR:mcd_app>"
-)
+if(WIN32)
+    get_target_property(MCD_QMAKE_EXECUTABLE Qt6::qmake IMPORTED_LOCATION)
+    get_filename_component(MCD_QT_BIN_DIR "${MCD_QMAKE_EXECUTABLE}" DIRECTORY)
+    find_program(MCD_WINDEPLOYQT_EXECUTABLE windeployqt
+        HINTS "${MCD_QT_BIN_DIR}"
+        REQUIRED
+    )
+    add_custom_command(TARGET mcd_app POST_BUILD
+        COMMAND "${MCD_WINDEPLOYQT_EXECUTABLE}"
+            --no-translations
+            --no-system-d3d-compiler
+            --no-opengl-sw
+            "$<TARGET_FILE:mcd_app>"
+        COMMENT "Deploying the Qt runtime beside mcd_app"
+    )
+endif()
 
 function(mcd_add_plugin target category)
     add_library(${target} MODULE ${ARGN})

@@ -13,11 +13,93 @@
 #include <QLabel>
 #include <QMenu>
 #include <QPushButton>
+#include <QRandomGenerator>
 #include <QRegularExpression>
 #include <QStandardPaths>
 #include <QVBoxLayout>
 
 #include <algorithm>
+
+namespace {
+
+constexpr int ProjectHeaderSize = 7;
+constexpr int SessionOffset = ProjectHeaderSize + 4;
+constexpr quint32 AgvHeartbeatId = 0x101;
+
+quint8 byteAt(const QByteArray& data, int offset)
+{
+    return static_cast<quint8>(data.at(offset));
+}
+
+quint32 projectFrameId(const QByteArray& frame)
+{
+    if (frame.size() < ProjectHeaderSize
+        || byteAt(frame, 0) != 0xca || byteAt(frame, 1) != 0xfd) {
+        return 0xffffffffU;
+    }
+    return (static_cast<quint32>(byteAt(frame, 2)) << 24)
+        | (static_cast<quint32>(byteAt(frame, 3)) << 16)
+        | (static_cast<quint32>(byteAt(frame, 4)) << 8)
+        | static_cast<quint32>(byteAt(frame, 5));
+}
+
+bool isAgvCommandId(quint32 canId)
+{
+    return canId == 0x080 || canId == 0x091 || canId == 0x101
+        || canId == 0x111 || canId == 0x121;
+}
+
+quint16 crc16Ccitt(const QByteArray& data, int offset, int length)
+{
+    quint16 crc = 0xffff;
+    for (int index = 0; index < length; ++index) {
+        crc ^= static_cast<quint16>(byteAt(data, offset + index)) << 8;
+        for (int bit = 0; bit < 8; ++bit) {
+            crc = (crc & 0x8000) != 0
+                ? static_cast<quint16>((crc << 1) ^ 0x1021)
+                : static_cast<quint16>(crc << 1);
+        }
+    }
+    return crc;
+}
+
+void putLe16(QByteArray* data, int offset, quint16 value)
+{
+    (*data)[offset] = static_cast<char>(value & 0xff);
+    (*data)[offset + 1] = static_cast<char>((value >> 8) & 0xff);
+}
+
+void putLe32(QByteArray* data, int offset, quint32 value)
+{
+    (*data)[offset] = static_cast<char>(value & 0xff);
+    (*data)[offset + 1] = static_cast<char>((value >> 8) & 0xff);
+    (*data)[offset + 2] = static_cast<char>((value >> 16) & 0xff);
+    (*data)[offset + 3] = static_cast<char>((value >> 24) & 0xff);
+}
+
+bool updateAgvSession(QByteArray* frame, quint32 session)
+{
+    if (!frame || !isAgvCommandId(projectFrameId(*frame))) {
+        return false;
+    }
+    const int payloadSize = byteAt(*frame, 6);
+    if (payloadSize < 16 || frame->size() != ProjectHeaderSize + payloadSize) {
+        return false;
+    }
+
+    putLe32(frame, SessionOffset, session);
+    const int crcOffset = ProjectHeaderSize + payloadSize - 2;
+    putLe16(frame, crcOffset,
+            crc16Ccitt(*frame, ProjectHeaderSize, payloadSize - 2));
+    return true;
+}
+
+QString displayHex(const QByteArray& data)
+{
+    return QString::fromLatin1(data.toHex(' ').toUpper());
+}
+
+} // namespace
 
 RawControlPlugin::RawControlPlugin(QWidget* parent)
     : IControlPlugin(parent)
@@ -113,10 +195,15 @@ void RawControlPlugin::buildUi()
     presetHeader->addStretch(1);
     auto* addButton = new QPushButton(tr("Add"), this);
     auto* removeButton = new QPushButton(tr("Remove"), this);
+    auto* sendPresetButton = new QPushButton(tr("Send Selected"), this);
     addButton->setFixedHeight(28);
     addButton->setMinimumWidth(64);
     removeButton->setFixedHeight(28);
     removeButton->setMinimumWidth(76);
+    sendPresetButton->setFixedHeight(28);
+    sendPresetButton->setMinimumWidth(112);
+    sendPresetButton->setEnabled(false);
+    presetHeader->addWidget(sendPresetButton);
     presetHeader->addWidget(addButton);
     presetHeader->addWidget(removeButton);
     root->addLayout(presetHeader);
@@ -131,13 +218,20 @@ void RawControlPlugin::buildUi()
     connect(m_sendButton, &QToolButton::clicked, this, [this]() { sendCurrent(false); });
     connect(m_periodicButton, &QToolButton::toggled, this, [this](bool checked) {
         if (checked) {
-            if (!isValidHex(m_input->text())) {
+            beginAgvSession();
+            const QString normalized = normalizeHex(m_input->text());
+            if (!isValidHex(normalized)) {
                 m_periodicButton->setChecked(false);
                 return;
             }
+            // Lock the periodic source when the timer starts. The editable input
+            // may then be used to prepare one-shot commands without changing the
+            // frame emitted by an already-running safety heartbeat.
+            m_periodicHex = normalized;
             m_periodicTimer.start(m_interval->value());
         } else {
             m_periodicTimer.stop();
+            m_periodicHex.clear();
         }
     });
     connect(&m_periodicTimer, &QTimer::timeout, this, [this]() { sendCurrent(true); });
@@ -148,8 +242,19 @@ void RawControlPlugin::buildUi()
     });
     connect(addButton, &QPushButton::clicked, this, &RawControlPlugin::addPreset);
     connect(removeButton, &QPushButton::clicked, this, &RawControlPlugin::removeSelectedPreset);
+    connect(sendPresetButton, &QPushButton::clicked, this, [this]() {
+        sendPreset(m_presetsList->currentItem());
+    });
+    connect(m_presetsList, &QListWidget::currentItemChanged, this,
+            [sendPresetButton](QListWidgetItem* current) {
+                sendPresetButton->setEnabled(current != nullptr);
+            });
+    connect(m_presetsList, &QListWidget::itemDoubleClicked,
+            this, &RawControlPlugin::sendPreset);
     connect(m_presetsList, &QListWidget::itemClicked, this, [this](QListWidgetItem* item) {
-        if (item) {
+        // While a periodic frame is active, presets are one-shot commands only.
+        // Use their context-menu action without replacing the visible heartbeat.
+        if (item && !m_periodicTimer.isActive()) {
             m_input->setText(item->data(Qt::UserRole).toString());
         }
     });
@@ -182,9 +287,15 @@ void RawControlPlugin::validateInput()
 
 void RawControlPlugin::sendCurrent(bool periodic)
 {
-    const QString normalized = normalizeHex(m_input->text());
+    const QString normalized = periodic ? m_periodicHex : normalizeHex(m_input->text());
     if (!isValidHex(normalized)) {
-        validateInput();
+        if (periodic) {
+            m_periodicTimer.stop();
+            m_periodicHex.clear();
+            m_periodicButton->setChecked(false);
+        } else {
+            validateInput();
+        }
         return;
     }
 
@@ -253,8 +364,13 @@ void RawControlPlugin::loadPresets()
     if (!file.open(QIODevice::ReadOnly)) {
         // 首次启动给两个无害示例，帮助用户看到预设列表的交互形态。
         m_presets = {
-            {QStringLiteral("Ping"), QStringLiteral("A5 00 01 FF")},
-            {QStringLiteral("Zero"), QStringLiteral("00")}
+            {QStringLiteral("Heartbeat 100ms"), QStringLiteral("CA FD 00 00 01 01 10 01 00 01 00 78 56 34 12 00 00 00 00 00 00 32 0C")},
+            {QStringLiteral("Clear Fault"), QStringLiteral("CA FD 00 00 00 91 10 01 02 64 00 78 56 34 12 00 00 00 00 00 00 B5 3B")},
+            {QStringLiteral("Move 300mm"), QStringLiteral("CA FD 00 00 01 21 20 01 00 65 00 78 56 34 12 2C 01 00 00 00 00 00 00 00 00 00 00 32 00 00 00 00 00 00 00 00 00 C5 CE")},
+            {QStringLiteral("Move 500mm"), QStringLiteral("CA FD 00 00 01 21 20 01 00 65 00 78 56 34 12 F4 01 00 00 00 00 00 00 00 00 00 00 32 00 00 00 00 00 00 00 00 00 EF 42")},
+            {QStringLiteral("Move 1000mm"), QStringLiteral("CA FD 00 00 01 21 20 01 00 65 00 78 56 34 12 E8 03 00 00 00 00 00 00 00 00 00 00 32 00 00 00 00 00 00 00 00 00 86 BD")},
+            {QStringLiteral("Stop"), QStringLiteral("CA FD 00 00 00 91 10 01 01 66 00 78 56 34 12 00 00 00 00 00 00 FA F2")},
+            {QStringLiteral("Emergency Stop"), QStringLiteral("CA FD 00 00 00 80 10 01 01 67 00 78 56 34 12 00 00 00 00 00 00 8F F1")}
         };
         return;
     }
@@ -347,6 +463,43 @@ void RawControlPlugin::sendPreset(QListWidgetItem* item)
     if (!item) {
         return;
     }
-    m_input->setText(item->data(Qt::UserRole).toString());
-    sendCurrent(false);
+
+    const QString normalized = normalizeHex(item->data(Qt::UserRole).toString());
+    if (!isValidHex(normalized)) {
+        return;
+    }
+
+    // Quick Send must not replace the live input: that field is also the source
+    // for periodic transmission (for example, a safety heartbeat). Replacing it
+    // here would cause a one-shot command to be retransmitted on every timer tick.
+    QVariantMap command;
+    command.insert(QStringLiteral("bytes"), parseHex(normalized));
+    command.insert(QStringLiteral("hex"), normalized);
+    addHistory(normalized);
+    emit commandGenerated(command);
+}
+
+bool RawControlPlugin::beginAgvSession()
+{
+    QByteArray heartbeat = parseHex(m_input->text());
+    if (projectFrameId(heartbeat) != AgvHeartbeatId) {
+        return false;
+    }
+
+    quint32 session = QRandomGenerator::global()->generate();
+    if (session == 0) {
+        session = 1;
+    }
+
+    // 每次启动心跳都建立新会话，使固定快捷序号可以安全重复使用。
+    updateAgvSession(&heartbeat, session);
+    m_input->setText(displayHex(heartbeat));
+    for (Preset& preset : m_presets) {
+        QByteArray frame = parseHex(preset.hex);
+        if (updateAgvSession(&frame, session)) {
+            preset.hex = displayHex(frame);
+        }
+    }
+    refreshPresetList();
+    return true;
 }

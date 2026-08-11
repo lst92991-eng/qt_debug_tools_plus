@@ -46,3 +46,4 @@ On this Windows setup the verified build command is:
 
 - `docs/realtime-pool-refactor-plan.md`: realtime pool refactor plan with ingest, dispatch, and UI thread responsibilities.
 - `docs/plugin-development-spec.md`: plugin development flow and design rules for physical, protocol, visual, and control plugins.
+- `docs/agv-canfd-integration-test-2026-08-11.md`: verified AGV CAN FD settings, 300 mm command sequence, results, and known limitations.

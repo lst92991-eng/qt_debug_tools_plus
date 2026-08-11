@@ -40,6 +40,7 @@ private:
     void addPreset();
     void removeSelectedPreset();
     void sendPreset(QListWidgetItem* item);
+    bool beginAgvSession();
 
     QLineEdit* m_input = nullptr;
     QToolButton* m_sendButton = nullptr;
@@ -47,6 +48,7 @@ private:
     QSpinBox* m_interval = nullptr;
     QListWidget* m_presetsList = nullptr;
     QTimer m_periodicTimer;
+    QString m_periodicHex;
     QStringList m_history;
     int m_historyIndex = -1;
     QVector<Preset> m_presets;

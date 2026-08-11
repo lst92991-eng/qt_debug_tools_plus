@@ -1,4 +1,5 @@
 #include "app/MainWindow.h"
+#include "app/AgvCanFdTest.h"
 
 #include "core/DebugCore.h"
 
@@ -9,6 +10,14 @@
 int main(int argc, char* argv[])
 {
     QApplication app(argc, argv);
+
+    if (QCoreApplication::arguments().contains(QStringLiteral("--distance-test-300"))) {
+        return runAgvCanFdTest(app, true);
+    }
+
+    if (QCoreApplication::arguments().contains(QStringLiteral("--canfd-link-test"))) {
+        return runAgvCanFdTest(app, false);
+    }
 
     if (QCoreApplication::arguments().contains(QStringLiteral("--smoke-test"))) {
         DebugCore* core = DebugCore::instance();

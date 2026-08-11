@@ -96,7 +96,7 @@ private:
     std::atomic_bool m_running = false;
     QThread* m_worker = nullptr;
     mutable QMutex m_ioMutex;
-    quint8 m_echoId = 0;
+    quint32 m_echoId = 0;
     bool m_forceFd = true;
     bool m_brs = true;
     quint32 m_timeoutMs = 500;

@@ -343,10 +343,10 @@ QVariantMap CandleLightCanFdPlugin::defaultConfig() const
         {QStringLiteral("device_index"), 0},
         {QStringLiteral("vid"), QStringLiteral("")},
         {QStringLiteral("pid"), QStringLiteral("")},
-        {QStringLiteral("nominal_bitrate"), 500000},
-        {QStringLiteral("data_bitrate"), 2000000},
-        {QStringLiteral("nominal_sample_point"), 875},
-        {QStringLiteral("data_sample_point"), 800},
+        {QStringLiteral("nominal_bitrate"), 1000000},
+        {QStringLiteral("data_bitrate"), 4000000},
+        {QStringLiteral("nominal_sample_point"), 750},
+        {QStringLiteral("data_sample_point"), 750},
         {QStringLiteral("force_fd"), QStringLiteral("true")},
         {QStringLiteral("brs"), QStringLiteral("true")},
         {QStringLiteral("listen_only"), QStringLiteral("false")},
@@ -579,8 +579,15 @@ bool CandleLightCanFdPlugin::openWinUsb(const QVariantMap& config)
         }
         if (pipe.PipeId & DirIn) {
             m_epIn = pipe.PipeId;
-            UCHAR rawIo = 1;
+            // A CAN FD gs_usb record is 76 bytes and therefore spans more than
+            // one 64-byte USB packet on a full-speed adapter. RAW_IO exposes
+            // those packet fragments directly, so the frame parser never sees
+            // a complete record. Let WinUSB assemble the transfer instead.
+            UCHAR rawIo = 0;
             WinUsb_SetPipePolicy(m_usb, m_epIn, RAW_IO, sizeof(rawIo), &rawIo);
+            ULONG inTimeout = m_timeoutMs;
+            WinUsb_SetPipePolicy(m_usb, m_epIn, PIPE_TRANSFER_TIMEOUT,
+                                 sizeof(inTimeout), &inTimeout);
         } else {
             m_epOut = pipe.PipeId;
             ULONG outTimeout = m_timeoutMs;
@@ -616,8 +623,8 @@ bool CandleLightCanFdPlugin::initializeDevice(const QVariantMap& config)
 
     const int nominalBitrate = parseInt(config.value(QStringLiteral("nominal_bitrate")), 500000);
     const int dataBitrate = parseInt(config.value(QStringLiteral("data_bitrate")), 2000000);
-    const int nominalSample = parseInt(config.value(QStringLiteral("nominal_sample_point")), 875);
-    const int dataSample = parseInt(config.value(QStringLiteral("data_sample_point")), 800);
+    const int nominalSample = parseInt(config.value(QStringLiteral("nominal_sample_point")), 750);
+    const int dataSample = parseInt(config.value(QStringLiteral("data_sample_point")), 750);
 
     BitTiming nominal;
     if (!solveBitTiming(nominalBitrate, nominalSample, m_caps.nominal, &nominal)) {
@@ -792,7 +799,9 @@ bool CandleLightCanFdPlugin::solveBitTiming(int bitrate, int samplePointPermille
 
 void CandleLightCanFdPlugin::readLoop()
 {
-    QByteArray buffer(256, '\0');
+    // WinUSB may coalesce several gs_usb frames into one transfer. Keep enough
+    // room for multiple 76-byte CAN FD records and parse every record below.
+    QByteArray buffer(512, '\0');
     while (m_running) {
         ULONG transferred = 0;
         const BOOL ok = WinUsb_ReadPipe(
@@ -823,30 +832,37 @@ void CandleLightCanFdPlugin::readLoop()
 
 void CandleLightCanFdPlugin::parseUsbPacket(const QByteArray& packet)
 {
-    if (packet.size() < static_cast<int>(sizeof(GsHostFrameHeader))) {
-        return;
+    constexpr int headerSize = static_cast<int>(sizeof(GsHostFrameHeader));
+    int offset = 0;
+
+    while (packet.size() - offset >= headerSize) {
+        const char* data = packet.constData() + offset;
+        const quint32 echoId = readLe32(data);
+        quint32 canId = readLe32(data + 4);
+        const int dlc = static_cast<quint8>(data[8]);
+        const quint8 flags = static_cast<quint8>(data[10]);
+        const bool fdFrame = (flags & FrameFd) != 0;
+        const int wirePayloadSize = fdFrame ? 64 : 8;
+        const int wireFrameSize = headerSize + wirePayloadSize;
+
+        if (packet.size() - offset < wireFrameSize) {
+            break;
+        }
+
+        const int length = fdFrame ? canFdDlcToLength(dlc) : std::min(dlc, 8);
+        if (echoId == EchoRx
+            && (canId & CanIdError) == 0
+            && (canId & CanIdRtr) == 0
+            && length >= 0
+            && length <= wirePayloadSize) {
+            const bool extended = (canId & CanIdExtended) != 0;
+            canId &= extended ? CanMask29 : CanMask11;
+            const QByteArray payload = packet.mid(offset + headerSize, length);
+            emit dataReceived(buildProjectCanFrame(canId, payload));
+        }
+
+        offset += wireFrameSize;
     }
-
-    const char* data = packet.constData();
-    const quint32 echoId = readLe32(data);
-    quint32 canId = readLe32(data + 4);
-    const int dlc = static_cast<quint8>(data[8]);
-    const quint8 flags = static_cast<quint8>(data[10]);
-
-    if (echoId != EchoRx || (canId & CanIdError) || (canId & CanIdRtr)) {
-        return;
-    }
-
-    const bool fdFrame = (flags & FrameFd) != 0;
-    const int length = fdFrame ? canFdDlcToLength(dlc) : std::min(dlc, 8);
-    if (length < 0 || packet.size() < static_cast<int>(sizeof(GsHostFrameHeader)) + length) {
-        return;
-    }
-
-    const bool extended = (canId & CanIdExtended) != 0;
-    canId &= extended ? CanMask29 : CanMask11;
-    const QByteArray payload = packet.mid(static_cast<int>(sizeof(GsHostFrameHeader)), length);
-    emit dataReceived(buildProjectCanFrame(canId, payload));
 }
 
 QString CandleLightCanFdPlugin::lastWindowsError(const QString& prefix) const
