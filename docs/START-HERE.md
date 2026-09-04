@@ -88,7 +88,7 @@ Microsoft 的 C++ 编译器，把 C++ 源码转换为 Windows 可执行程序和
 
 ### Kit
 
-Qt Creator 中的一套构建组合，包括 Qt 版本、C++ 编译器、CMake、调试器和运行设备。本教程始终使用 Qt 6.11.0 + MSVC 2022 + x64。
+Qt Creator 中的一套构建组合，包括 Qt 版本、C++ 编译器、CMake、调试器和运行设备。本教程始终使用 Qt 6.11.2 + MSVC 2022 + x64。
 
 ## 6. 每一课必须长什么样
 

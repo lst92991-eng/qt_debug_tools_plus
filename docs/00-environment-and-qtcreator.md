@@ -6,11 +6,11 @@
 
 1. 准备 Windows、账号和磁盘空间；
 2. 安装 MSVC C++ 编译环境；
-3. 安装 Qt 6.11.0、Qt Creator 和必要工具；
+3. 安装 Qt 6.11.2、Qt Creator 和必要工具；
 4. 安装 VS Code 扩展并检查两个 IDE 的工具链；
 5. 不下载任何现成项目，亲手新建、编译并运行一个 Qt Widgets 工程。
 
-本工程固定使用 Windows x64、Qt 6.11.0、MSVC 2022、C++17 和 CMake。Qt 6.11 官方 Windows 支持表列出的编译器是 MSVC 2022，因此新手环境优先安装 Visual Studio 2022，不以“机器上恰好能编译”为标准。
+本工程固定使用 Windows x64、Qt 6.11.2、MSVC 2022、C++17 和 CMake。Qt 6.11 官方 Windows 支持表列出的编译器是 MSVC 2022，因此新手环境优先安装 Visual Studio 2022，不以“机器上恰好能编译”为标准。
 
 这一课从“电脑上没有任何 Qt/C++ 开发工具”开始。学生不需要预先理解编译器、Qt、CMake 或 Kit。每安装完一项都要立即验证；前一项验证失败时，不继续安装下一项。
 
@@ -63,7 +63,7 @@ MSVC 和 Windows SDK 是 Microsoft 的专有组件，不使用第三方重打包
 
 安装完成后重启一次 Windows。若已经装好 Visual Studio 2022，只需在 Visual Studio Installer 中点“修改”，核对以上项目。
 
-## 3. 安装 Qt 6.11.0
+## 3. 安装 Qt 6.11.2
 
 Qt 使用清华大学 TUNA 镜像下载 Online Installer，并让安装器后续也从同一镜像获取组件。安装后仍可通过 Maintenance Tool 增删组件。
 
@@ -94,7 +94,7 @@ Qt 使用清华大学 TUNA 镜像下载 Online Installer，并让安装器后续
 
 | 组件树中的项目 | 选择 | 原因 |
 | --- | --- | --- |
-| `Qt 6.11.0 > MSVC 2022 64-bit` | 必选 | 本项目的 Qt 库和 ABI 基线 |
+| `Qt 6.11.2 > MSVC 2022 64-bit` | 必选 | 本项目的 Qt 库和 ABI 基线 |
 | `Qt Serial Port` | 必选 | Day 5 起使用 `QSerialPort` 和 `Qt6::SerialPort` |
 | `Qt Creator` | 必选 | 本教程使用的 IDE |
 | `CMake` | 建议 | Qt Creator 配置 CMake 工程 |
@@ -119,10 +119,10 @@ Qt 使用清华大学 TUNA 镜像下载 Online Installer，并让安装器后续
 安装目录统一使用 `D:\QT`，安装后应能找到：
 
 ```text
-D:\QT\6.11.0\msvc2022_64\bin\qmake.exe
-D:\QT\6.11.0\msvc2022_64\bin\windeployqt.exe
-D:\QT\6.11.0\msvc2022_64\lib\cmake\Qt6\Qt6Config.cmake
-D:\QT\6.11.0\msvc2022_64\lib\cmake\Qt6SerialPort\Qt6SerialPortConfig.cmake
+D:\QT\6.11.2\msvc2022_64\bin\qmake.exe
+D:\QT\6.11.2\msvc2022_64\bin\windeployqt.exe
+D:\QT\6.11.2\msvc2022_64\lib\cmake\Qt6\Qt6Config.cmake
+D:\QT\6.11.2\msvc2022_64\lib\cmake\Qt6SerialPort\Qt6SerialPortConfig.cmake
 ```
 
 Qt Creator 的实际目录会随安装器版本变化，优先从开始菜单启动，不要照抄某一台电脑的绝对路径。
@@ -130,12 +130,12 @@ Qt Creator 的实际目录会随安装器版本变化，优先从开始菜单启
 重新打开 PowerShell，逐条验证 Qt、CMake 和 Ninja：
 
 ```powershell
-& 'D:\QT\6.11.0\msvc2022_64\bin\qmake.exe' -query QT_VERSION
+& 'D:\QT\6.11.2\msvc2022_64\bin\qmake.exe' -query QT_VERSION
 & 'D:\QT\Tools\CMake_64\bin\cmake.exe' --version
 & 'D:\QT\Tools\Ninja\ninja.exe' --version
 ```
 
-第一条必须输出 `6.11.0`，后两条必须输出各自版本号。任意一条提示“找不到路径”时，先运行 `D:\QT\MaintenanceTool.exe` 补装对应组件，不进入下一步。
+第一条必须输出 `6.11.2`，后两条必须输出各自版本号。任意一条提示“找不到路径”时，先运行 `D:\QT\MaintenanceTool.exe` 补装对应组件，不进入下一步。
 
 ## 4. 配置 VS Code 与 Qt Creator
 
@@ -198,7 +198,7 @@ D:\QT
 如果扩展要求选择具体 `qmake.exe`，选择：
 
 ```text
-D:\QT\6.11.0\msvc2022_64\bin\qmake.exe
+D:\QT\6.11.2\msvc2022_64\bin\qmake.exe
 ```
 
 再执行：
@@ -228,7 +228,7 @@ VS Code：D:\QtBuilds\MCUDebugTool-vscode
 Qt Creator：项目目录之外的 Qt Creator shadow build 目录
 ```
 
-它们必须使用相同的 Qt 6.11.0、MSVC 2022 x64、CMake 配置和 Debug/Release 类型。
+它们必须使用相同的 Qt 6.11.2、MSVC 2022 x64、CMake 配置和 Debug/Release 类型。
 
 ### 4.5 第一次启动 Qt Creator 并检查 Kit
 
@@ -243,20 +243,20 @@ Qt Creator：项目目录之外的 Qt Creator shadow build 目录
 
 | 标签页 | 必须看到的内容 |
 | --- | --- |
-| Qt Versions | Qt 6.11.0，路径指向 `D:\QT\6.11.0\msvc2022_64\bin\qmake.exe` |
+| Qt Versions | Qt 6.11.2，路径指向 `D:\QT\6.11.2\msvc2022_64\bin\qmake.exe` |
 | Compilers | Microsoft Visual C++ x64 编译器 |
 | CMake | 路径指向 `D:\QT\Tools\CMake_64\bin\cmake.exe` 或另一可用 CMake |
 | Debuggers | 适用于 x64 的 CDB 调试器 |
-| Kits | `Desktop Qt 6.11.0 MSVC2022 64bit`，前面没有红色感叹号 |
+| Kits | `Desktop Qt 6.11.2 MSVC2022 64bit`，前面没有红色感叹号 |
 
 Qt Creator 随 Qt 一起安装时通常会自动识别这些工具。如果没有自动识别，按下面顺序修复：
 
-1. 在 `Qt Versions` 点 `Add`，选择 `D:\QT\6.11.0\msvc2022_64\bin\qmake.exe`；
+1. 在 `Qt Versions` 点 `Add`，选择 `D:\QT\6.11.2\msvc2022_64\bin\qmake.exe`；
 2. 在 `Compilers` 确认有 Microsoft Visual C++ x64；没有时关闭 Qt Creator，修复 Visual Studio C++ 工作负载后重开；
 3. 在 `CMake` 点 `Add`，选择 `D:\QT\Tools\CMake_64\bin\cmake.exe`；
 4. 在 `Debuggers` 确认有 x64 CDB；没有时回 Visual Studio Installer 增加 Windows 调试工具；
-5. 在 `Kits` 点 `Add`，Device type 选 Desktop，Qt version 选 6.11.0，C/C++ compiler 选 MSVC x64，CMake tool 选刚才的 CMake，Debugger 选 x64 CDB；
-6. Kit 名称填写 `Desktop Qt 6.11.0 MSVC2022 64bit`；
+5. 在 `Kits` 点 `Add`，Device type 选 Desktop，Qt version 选 6.11.2，C/C++ compiler 选 MSVC x64，CMake tool 选刚才的 CMake，Debugger 选 x64 CDB；
+6. Kit 名称填写 `Desktop Qt 6.11.2 MSVC2022 64bit`；
 7. 点 `Apply`，确认 Kit 没有红色错误提示。
 
 Kit 是“设备 + 编译器 + Qt 版本 + 调试器 + 构建工具”的固定组合。官方字段说明见 [Qt Creator：Managing kits](https://doc.qt.io/qtcreator/creator-preferences-kits.html)。
@@ -315,7 +315,7 @@ Form file：mainwindow.ui
 ### 5.5 翻译和 Kit
 
 1. Translation file 选择 `None/无`，后续课程再讲翻译；
-2. Kit 只勾选 `Desktop Qt 6.11.0 MSVC2022 64bit`；
+2. Kit 只勾选 `Desktop Qt 6.11.2 MSVC2022 64bit`；
 3. 不勾选 MinGW、Android、WebAssembly 或 ARM64 Kit；
 4. Project Management 页的 Version Control 选择 `None`；
 5. 点击 Finish。
@@ -351,7 +351,7 @@ Qt: Register Qt installation
 CMake: Select a Kit
 ```
 
-Qt 路径选择 `D:\QT`，CMake Kit 选择包含 Qt 6.11.0、MSVC 2022 和 x64 的项目。不要选择 Visual Studio 2026、MinGW 或 x86 Kit。
+Qt 路径选择 `D:\QT`，CMake Kit 选择包含 Qt 6.11.2、MSVC 2022 和 x64 的项目。不要选择 Visual Studio 2026、MinGW 或 x86 Kit。
 
 在项目中创建 `.vscode/settings.json`，内容为：
 
@@ -359,7 +359,7 @@ Qt 路径选择 `D:\QT`，CMake Kit 选择包含 Qt 6.11.0、MSVC 2022 和 x64 �
 {
   "qt-core.qtInstallationRoot": "D:\\QT",
   "qt-core.additionalQtPaths": [
-    "D:\\QT\\6.11.0\\msvc2022_64\\bin\\qmake.exe"
+    "D:\\QT\\6.11.2\\msvc2022_64\\bin\\qmake.exe"
   ],
   "cmake.cmakePath": "D:\\QT\\Tools\\CMake_64\\bin\\cmake.exe",
   "cmake.buildDirectory": "D:/QtBuilds/MCUDebugTool-vscode"
@@ -414,7 +414,7 @@ Git 移到第六章作为可选的专业版本管理方式，不影响前面章�
 
 #### `Could not find Qt6Config.cmake`
 
-选错 Kit 或 Qt version 没有注册。回到 `Preferences > Kits > Qt Versions`，添加 `D:\QT\6.11.0\msvc2022_64\bin\qmake.exe`，不要全局乱加 PATH。
+选错 Kit 或 Qt version 没有注册。回到 `Preferences > Kits > Qt Versions`，添加 `D:\QT\6.11.2\msvc2022_64\bin\qmake.exe`，不要全局乱加 PATH。
 
 #### `No CMAKE_CXX_COMPILER could be found`
 
@@ -422,7 +422,7 @@ Visual Studio C++ 工作负载缺失，或 Kit 没选 MSVC x64。回 Visual Stud
 
 #### `Qt6SerialPort not found`
 
-Day 0 不会出现；Day 5 出现时，运行 Qt 安装目录下的 Maintenance Tool，给 Qt 6.11.0 MSVC 2022 64-bit 增加 Qt Serial Port。
+Day 0 不会出现；Day 5 出现时，运行 Qt 安装目录下的 Maintenance Tool，给 Qt 6.11.2 MSVC 2022 64-bit 增加 Qt Serial Port。
 
 #### `generator does not match` 或缓存路径指向旧 Qt
 
@@ -450,12 +450,12 @@ Day 0 不会出现；Day 5 出现时，运行 Qt 安装目录下的 Maintenance 
 
 - [ ] Visual Studio 2022 的“使用 C++ 的桌面开发”已安装；
 - [ ] Qt 安装器通过清华 TUNA 镜像启动；
-- [ ] `qmake` 输出 Qt 6.11.0；
+- [ ] `qmake` 输出 Qt 6.11.2；
 - [ ] CMake 和 Ninja 都能输出版本号；
 - [ ] VS Code 能输出版本号；
 - [ ] 已安装 Qt C++ Extension Pack 和 Microsoft C/C++；
-- [ ] VS Code 已注册 `D:\QT`，并选中 Qt 6.11.0 MSVC 2022 x64 Kit；
-- [ ] Kit 名称明确包含 Qt 6.11.0、MSVC 2022 和 64-bit；
+- [ ] VS Code 已注册 `D:\QT`，并选中 Qt 6.11.2 MSVC 2022 x64 Kit；
+- [ ] Kit 名称明确包含 Qt 6.11.2、MSVC 2022 和 64-bit；
 - [ ] 学生没有克隆或复制任何现成项目；
 - [ ] 已通过 Qt Creator 向导创建 `D:\QtProjects\MCUDebugTool`；
 - [ ] 工程包含 `CMakeLists.txt`、`main.cpp`、`mainwindow.cpp/.h/.ui`；
