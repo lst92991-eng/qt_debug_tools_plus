@@ -4,14 +4,9 @@
 
 使用 `Win + Shift + S` 截取当前安装器窗口，保存到本目录。文件名固定如下：
 
-## 系统和 Git
+## 系统
 
 - `01-windows-system.png`：Windows 版本和 x64 系统类型；
-- `02-git-mirror-download.png`：清华镜像中的 Git x64 安装包；
-- `03-git-path-option.png`：Git PATH 选项；
-- `04-git-version.png`：`git --version` 验证结果。
-
-当前电脑保留了 Git，因此 02–04 需要以后在另一台真正未安装 Git 的电脑上补拍。
 
 ## Visual Studio 2022
 
@@ -49,6 +44,6 @@
 - `44-kit-selection.png`：只选 MSVC 2022 64-bit Kit；
 - `45-first-build.png`：第一次 Build finished；
 - `46-empty-main-window.png`：学生亲手生成的空白窗口；
-- `47-first-git-commit.png`：第一次本地提交后的干净状态。
+- `47-step01-backup.png`：`MCUDebugTool-step01-empty` 源码备份。
 
 每拍完一张先打开检查：文字必须能看清，窗口边缘不要被裁断，个人信息不能出现。文档确认采用后再提交原始 PNG。

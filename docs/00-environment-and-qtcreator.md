@@ -2,22 +2,21 @@
 
 ## 1. 环境说明与安装准备
 
-完成下面六件事就停，不进入串口、插件或 CAN FD 代码：
+完成下面五件事就停，不进入串口、插件或 CAN FD 代码：
 
 1. 准备 Windows、账号和磁盘空间；
-2. 安装 Git 并完成最基本配置；
-3. 安装 MSVC C++ 编译环境；
-4. 安装 Qt 6.11.0、Qt Creator 和必要工具；
-5. 让 Qt Creator 识别 `MSVC 2022 64-bit` Kit；
-6. 不下载任何现成项目，亲手新建、编译并运行一个 Qt Widgets 工程。
+2. 安装 MSVC C++ 编译环境；
+3. 安装 Qt 6.11.0、Qt Creator 和必要工具；
+4. 安装 VS Code 扩展并检查两个 IDE 的工具链；
+5. 不下载任何现成项目，亲手新建、编译并运行一个 Qt Widgets 工程。
 
 本工程固定使用 Windows x64、Qt 6.11.0、MSVC 2022、C++17 和 CMake。Qt 6.11 官方 Windows 支持表列出的编译器是 MSVC 2022，因此新手环境优先安装 Visual Studio 2022，不以“机器上恰好能编译”为标准。
 
-这一课从“电脑上没有任何开发工具”开始。学生不需要预先理解 Git、编译器、Qt、CMake 或 Kit。每安装完一项都要立即验证；前一项验证失败时，不继续安装下一项。
+这一课从“电脑上没有任何 Qt/C++ 开发工具”开始。学生不需要预先理解编译器、Qt、CMake 或 Kit。每安装完一项都要立即验证；前一项验证失败时，不继续安装下一项。
 
 本步骤的结束条件只有一个：学生能在 Qt Creator 中从新建项目向导开始，亲自生成、构建并运行一个空白窗口。界面、串口、插件和 CAN FD 都属于后续课程。
 
-> 验证状态：本文中的工具路径、CMake 配置和最小程序已在现有开发机验证。由于现有开发机原本已经安装开发环境，还必须在一台干净 Windows 机器或虚拟机上，从下载 Git 开始完整执行一次，才能把本课标记为最终完成。
+> 验证状态：本文中的工具路径、CMake 配置和最小程序已在现有开发机验证。由于现有开发机原本已经安装开发环境，还必须在一台干净 Windows 机器或虚拟机上，从下载 Visual Studio 2022 开始完整执行一次，才能把本课标记为最终完成。
 
 ### 安装前检查
 
@@ -31,46 +30,7 @@
 
 本教程只讲 Windows x64。不要在第一次学习时同时尝试 Linux、ARM64 或 MinGW。
 
-## 2. 安装和配置 Git
-
-国内下载入口：[清华大学 TUNA 的 Git for Windows LatestRelease](https://mirrors.tuna.tsinghua.edu.cn/github-release/git-for-windows/git/LatestRelease/)。
-
-普通 Intel/AMD Windows 电脑选择文件名以 `-64-bit.exe` 结尾的安装版，不选择 ARM64、PortableGit、MinGit、`.zip` 或 `.tar.bz2`。截至本文验证时，示例文件名是 `Git-2.55.0.5-64-bit.exe`；镜像更新后版本号可能增加，仍按上述文件名规则选择最新版。
-
-下载后右键安装包，选择“属性 > 数字签名”，确认存在有效签名再运行。不要从网盘、个人博客附件或来路不明的软件站下载安装包。Git 官方版本页可用于核对当前版本：[Git for Windows](https://git-scm.com/install/windows)。
-
-运行安装器时，大部分页面保留默认值。遇到下面选项时这样选：
-
-| 页面或选项 | 选择 |
-| --- | --- |
-| Select Components | 保留 Windows Explorer integration 和 Git Credential Manager |
-| Choosing the default editor | 可保留默认；这套教程主要在 Qt Creator 编辑代码 |
-| Adjusting the name of the initial branch | 选择 `Override...` 并填 `main` |
-| Adjusting your PATH environment | `Git from the command line and also from 3rd-party software` |
-| Choosing the SSH executable | `Use bundled OpenSSH` |
-| Choosing HTTPS transport backend | `Use the OpenSSL library` |
-| Configuring line ending conversions | `Checkout Windows-style, commit Unix-style line endings` |
-| Choosing the default behavior of git pull | `Fast-forward or merge` |
-| Choosing a credential helper | `Git Credential Manager` |
-| Configuring extra options | 保留 file system caching，其余默认 |
-
-安装完成后关闭原来的 PowerShell，再从开始菜单打开一个新的 PowerShell，输入：
-
-```powershell
-git --version
-```
-
-能看到 `git version 2.x.x` 即安装成功。第一次使用还要设置提交署名，把示例替换为你自己的名字和常用邮箱：
-
-```powershell
-git config --global user.name "你的名字"
-git config --global user.email "你的邮箱"
-git config --global --list
-```
-
-最后一条输出中应能找到刚才填写的 `user.name` 和 `user.email`。
-
-## 3. 安装 Visual Studio 2022 与 MSVC
+## 2. 安装 Visual Studio 2022 与 MSVC
 
 安装顺序建议是 Visual Studio 2022 在前、Qt 在后。这样 Qt Creator 首次启动时更容易自动找到编译器。
 
@@ -103,7 +63,7 @@ MSVC 和 Windows SDK 是 Microsoft 的专有组件，不使用第三方重打包
 
 安装完成后重启一次 Windows。若已经装好 Visual Studio 2022，只需在 Visual Studio Installer 中点“修改”，核对以上项目。
 
-## 4. 安装 Qt 6.11.0
+## 3. 安装 Qt 6.11.0
 
 Qt 使用清华大学 TUNA 镜像下载 Online Installer，并让安装器后续也从同一镜像获取组件。安装后仍可通过 Maintenance Tool 增删组件。
 
@@ -177,11 +137,11 @@ Qt Creator 的实际目录会随安装器版本变化，优先从开始菜单启
 
 第一条必须输出 `6.11.0`，后两条必须输出各自版本号。任意一条提示“找不到路径”时，先运行 `D:\QT\MaintenanceTool.exe` 补装对应组件，不进入下一步。
 
-## 5. 配置 VS Code 与 Qt Creator
+## 4. 配置 VS Code 与 Qt Creator
 
-VS Code 是本课程的主要代码编辑器，负责编辑 `.cpp/.h`、修改 CMake、搜索、Git、日常构建和测试。Qt Creator 仍然负责 Qt Kit 基准检查、Qt Designer 界面编辑和必要的 Qt 调试。两者操作同一份源码，不创建两套工程。
+VS Code 是本课程的主要代码编辑器，负责编辑 `.cpp/.h`、修改 CMake、搜索、日常构建和测试。Qt Creator 仍然负责 Qt Kit 基准检查、Qt Designer 界面编辑和必要的 Qt 调试。两者操作同一份源码，不创建两套工程。
 
-### 5.1 安装 VS Code
+### 4.1 安装 VS Code
 
 从 [VS Code 官方 Windows 下载页](https://code.visualstudio.com/Download) 下载 Windows x64 User Installer。运行安装器时：
 
@@ -201,7 +161,7 @@ code --version
 
 能输出版本号即安装成功。VS Code 官方说明推荐普通个人用户使用 User Setup，它安装在当前用户目录并支持平滑更新。
 
-### 5.2 安装官方扩展
+### 4.2 安装官方扩展
 
 启动 VS Code，按 `Ctrl+Shift+X` 打开扩展，依次安装：
 
@@ -221,7 +181,7 @@ Qt C++ Extension Pack 会自动安装 Qt C++、Qt Core、CMake 和 CMake Tools �
 - [Qt Extension for VS Code 安装说明](https://doc.qt.io/vscodeext/vscodeext-how-to-install.html)
 - [Microsoft CMake Tools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cmake-tools)
 
-### 5.3 在 VS Code 注册 Qt 安装路径
+### 4.3 在 VS Code 注册 Qt 安装路径
 
 按 `Ctrl+Shift+P` 打开命令面板，执行：
 
@@ -249,7 +209,7 @@ Qt: Open Qt Extension settings
 
 检查 Qt Installation Root 为 `D:\QT`，Additional Qt Paths 包含 MSVC 2022 64-bit 的 `qmake.exe`。
 
-### 5.4 两个 IDE 的协作规则
+### 4.4 两个 IDE 的协作规则
 
 | 工作 | 默认工具 |
 | --- | --- |
@@ -258,20 +218,19 @@ Qt: Open Qt Extension settings
 | 编辑 `.ui` | Qt Creator Design，或 VS Code Qt 扩展调用的 Qt Widgets Designer |
 | 日常 Configure/Build/Test | VS Code CMake Tools |
 | 检查 Qt Kit、信号槽和 Qt 调试 | Qt Creator |
-| Git 查看和提交 | VS Code Source Control 或 PowerShell |
 
 禁止两个 IDE 同时修改同一个文件。切换前先保存；`.ui` 文件只通过 Designer 修改，不手工编辑 XML。
 
 两个 IDE 使用不同构建目录：
 
 ```text
-VS Code：项目目录\build-vscode
+VS Code：D:\QtBuilds\MCUDebugTool-vscode
 Qt Creator：项目目录之外的 Qt Creator shadow build 目录
 ```
 
 它们必须使用相同的 Qt 6.11.0、MSVC 2022 x64、CMake 配置和 Debug/Release 类型。
 
-### 5.5 第一次启动 Qt Creator 并检查 Kit
+### 4.5 第一次启动 Qt Creator 并检查 Kit
 
 这一节仍然不下载任何项目。
 
@@ -302,9 +261,9 @@ Qt Creator 随 Qt 一起安装时通常会自动识别这些工具。如果没�
 
 Kit 是“设备 + 编译器 + Qt 版本 + 调试器 + 构建工具”的固定组合。官方字段说明见 [Qt Creator：Managing kits](https://doc.qt.io/qtcreator/creator-preferences-kits.html)。
 
-## 6. 从零新建并运行工程
+## 5. 从零新建工程
 
-### 6.1 打开新建项目向导
+### 5.1 打开新建项目向导
 
 1. 回到 Qt Creator 欢迎页；
 2. 选择 `文件/File > 新建项目/New Project`；
@@ -312,7 +271,7 @@ Kit 是“设备 + 编译器 + Qt 版本 + 调试器 + 构建工具”的固定�
 4. 右侧选择 `Qt Widgets Application`；
 5. 点击 `Choose/选择`。
 
-### 6.2 设置项目名称和保存位置
+### 5.2 设置项目名称和保存位置
 
 在 Project Location 页面填写：
 
@@ -329,7 +288,7 @@ D:\QtProjects\MCUDebugTool
 
 不要把项目放在 `D:\QT` 安装目录、桌面、下载文件夹或中文/空格很多的路径中。
 
-### 6.3 选择构建系统
+### 5.3 选择构建系统
 
 Build System 选择：
 
@@ -339,7 +298,7 @@ CMake
 
 不要选择 qmake 或 Qbs。点击 Next。
 
-### 6.4 设置主窗口类
+### 5.4 设置主窗口类
 
 在 Class Information 页面填写：
 
@@ -353,17 +312,17 @@ Form file：mainwindow.ui
 
 勾选 `Generate form/生成窗体`，点击 Next。
 
-### 6.5 翻译和 Kit
+### 5.5 翻译和 Kit
 
 1. Translation file 选择 `None/无`，后续课程再讲翻译；
 2. Kit 只勾选 `Desktop Qt 6.11.0 MSVC2022 64bit`；
 3. 不勾选 MinGW、Android、WebAssembly 或 ARM64 Kit；
-4. Project Management 页如果能选择版本控制，选 `Git`；没有 Git 选项就选 None，稍后手动初始化；
+4. Project Management 页的 Version Control 选择 `None`；
 5. 点击 Finish。
 
 这是学生自己创建的项目，不包含你的仓库、成品源码或教学骨架。
 
-### 6.6 检查向导生成的文件
+### 5.6 检查向导生成的文件
 
 Qt Creator 左侧项目树应至少出现：
 
@@ -377,7 +336,7 @@ mainwindow.ui
 
 双击 `mainwindow.ui` 应进入 Designer。现在不要添加控件，只确认设计器能打开。
 
-### 6.7 用 VS Code 打开同一工程
+### 5.7 用 VS Code 打开同一工程
 
 在 VS Code 选择 `文件/File > 打开文件夹/Open Folder`，打开：
 
@@ -403,11 +362,13 @@ Qt 路径选择 `D:\QT`，CMake Kit 选择包含 Qt 6.11.0、MSVC 2022 和 x64 �
     "D:\\QT\\6.11.0\\msvc2022_64\\bin\\qmake.exe"
   ],
   "cmake.cmakePath": "D:\\QT\\Tools\\CMake_64\\bin\\cmake.exe",
-  "cmake.buildDirectory": "${workspaceFolder}/build-vscode"
+  "cmake.buildDirectory": "D:/QtBuilds/MCUDebugTool-vscode"
 }
 ```
 
-### 6.8 分别用 Qt Creator 和 VS Code 构建
+## 6. 构建、备份、排错与验收
+
+### 6.1 分别用 Qt Creator 和 VS Code 构建
 
 1. 点击左侧 `Projects/项目`；
 2. Build configuration 选择 `Debug`；
@@ -430,63 +391,26 @@ CMake: Build
 
 两条命令都成功，且 `build-vscode` 中生成程序后，说明 VS Code 协作环境也正常。日常写代码可以留在 VS Code；每个教学阶段结束后再用 Qt Creator 额外构建一次作为交叉验证。
 
-## 7. 本地版本存档、排错与验收
+### 6.2 建立第一个源码备份
 
-### 7.1 创建 .gitignore
+1. 保存所有文件并关闭正在运行的程序；
+2. 在 D 盘创建 `D:\QtCourseBackups`；
+3. 把整个 `D:\QtProjects\MCUDebugTool` 文件夹复制进去；
+4. 把副本重命名为 `MCUDebugTool-step01-empty`；
+5. 确认副本包含 `CMakeLists.txt`、`main.cpp` 和 `mainwindow.*`；
+6. 确认副本中没有 `.exe`、`.obj` 或 build 目录。
 
-在 Qt Creator 中选择 `文件/File > 新建文件/New File or Project > General > Empty File`，文件名填写 `.gitignore`，保存到：
-
-```text
-D:\QtProjects\MCUDebugTool\.gitignore
-```
-
-输入：
-
-```gitignore
-build*/
-out/
-.qt/
-.vscode/cmake-kits.json
-CMakeUserPresets.json
-*.user
-*.autosave
-*.log
-```
-
-保存文件。
-
-### 7.2 初始化和提交
-
-在文件资源管理器打开 `D:\QtProjects\MCUDebugTool`，点击地址栏输入 `powershell` 并按 Enter，然后执行：
-
-```powershell
-git status
-```
-
-如果提示 `not a git repository`，继续执行：
-
-```powershell
-git init
-```
-
-随后执行：
-
-```powershell
-git add .
-git status --short
-git commit -m "chore: create Qt Widgets project"
-git status
-```
-
-提交前的 `git status --short` 应只包含源码、CMake 和 `.gitignore`，不能出现构建目录、`.exe`、`.obj` 或 `.user`。提交后应看到：
+后续每完成一步都创建新副本：
 
 ```text
-nothing to commit, working tree clean
+MCUDebugTool-step01-empty
+MCUDebugTool-step02-main-window
+MCUDebugTool-step03-data-frame
 ```
 
-这里创建的是学生电脑上的本地 Git 仓库，不设置远程地址，也不拉取你的项目。
+Git 移到第六章作为可选的专业版本管理方式，不影响前面章节编译和学习。
 
-### 7.3 常见问题
+### 6.3 常见问题
 
 #### `Could not find Qt6Config.cmake`
 
@@ -522,20 +446,8 @@ Day 0 不会出现；Day 5 出现时，运行 Qt 安装目录下的 Maintenance 
 
 先关闭 Qt Creator。在 Visual Studio Installer 中确认“使用 C++ 的桌面开发”和 MSVC v143 x64/x86 工具已安装，重启 Windows 后再打开 Qt Creator。
 
-#### `git commit` 提示 `Author identity unknown`
+### 6.4 第一章验收清单
 
-说明没有设置 Git 提交署名。重新执行：
-
-```powershell
-git config --global user.name "你的名字"
-git config --global user.email "你的邮箱"
-```
-
-### 7.4 第一章验收清单
-
-- [ ] `git --version` 能输出版本号；
-- [ ] 已设置自己的 Git 用户名和邮箱；
-- [ ] Git 安装包来自清华 TUNA，且数字签名有效；
 - [ ] Visual Studio 2022 的“使用 C++ 的桌面开发”已安装；
 - [ ] Qt 安装器通过清华 TUNA 镜像启动；
 - [ ] `qmake` 输出 Qt 6.11.0；
@@ -551,5 +463,5 @@ git config --global user.email "你的邮箱"
 - [ ] Qt Creator 和 VS Code 分别使用独立构建目录且都能构建；
 - [ ] 空白 MainWindow 能启动；
 - [ ] 能双击 `mainwindow.ui` 进入 Designer；
-- [ ] 已建立本地 Git 仓库并完成第一次提交；
-- [ ] `git status` 显示工作区干净，且没有提交构建目录或 `.user` 文件。
+- [ ] 已创建 `MCUDebugTool-step01-empty` 源码备份；
+- [ ] 备份中没有 `.exe`、`.obj` 或构建目录。
