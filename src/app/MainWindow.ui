@@ -6,71 +6,315 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>960</width>
-    <height>640</height>
+    <width>1100</width>
+    <height>700</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MCU Debug Tool</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QVBoxLayout" name="verticalLayout">
+   <layout class="QHBoxLayout" name="rootLayout" stretch="0,1">
+    <property name="spacing">
+     <number>12</number>
+    </property>
+    <property name="leftMargin">
+     <number>12</number>
+    </property>
+    <property name="topMargin">
+     <number>12</number>
+    </property>
+    <property name="rightMargin">
+     <number>12</number>
+    </property>
+    <property name="bottomMargin">
+     <number>12</number>
+    </property>
     <item>
-     <spacer name="verticalSpacerTop">
-      <property name="orientation">
-       <enum>Qt::Orientation::Vertical</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
+     <widget class="QGroupBox" name="connectionGroupBox">
+      <property name="minimumSize">
        <size>
-        <width>20</width>
-        <height>180</height>
+        <width>240</width>
+        <height>0</height>
        </size>
       </property>
-     </spacer>
-    </item>
-    <item>
-     <widget class="QLabel" name="titleLabel">
-      <property name="font">
-       <font>
-        <pointsize>22</pointsize>
-        <bold>true</bold>
-       </font>
+      <property name="maximumSize">
+       <size>
+        <width>280</width>
+        <height>16777215</height>
+       </size>
       </property>
-      <property name="text">
-       <string>MCU Debug Tool 教学骨架</string>
+      <property name="title">
+       <string>设备连接</string>
       </property>
-      <property name="alignment">
-       <set>Qt::AlignmentFlag::AlignCenter</set>
-      </property>
+      <layout class="QVBoxLayout" name="connectionLayout">
+       <item>
+        <widget class="QLabel" name="physicalLabel">
+         <property name="text">
+          <string>物理设备</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="physicalCombo">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="protocolLabel">
+         <property name="text">
+          <string>协议解析</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="protocolCombo">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="connectionButtonLayout">
+         <item>
+          <widget class="QPushButton" name="configButton">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="text">
+            <string>配置</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="connectButton">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="text">
+            <string>连接</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QPushButton" name="disconnectButton">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>断开</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="statusLabel">
+         <property name="text">
+          <string>状态：未连接</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="rxCounterLabel">
+         <property name="text">
+          <string>接收：0 帧</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="txCounterLabel">
+         <property name="text">
+          <string>发送：0 帧</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Orientation::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
      </widget>
     </item>
     <item>
-     <widget class="QLabel" name="hintLabel">
-      <property name="text">
-       <string>Day 0：Qt Widgets 工程已经成功运行</string>
+     <widget class="QWidget" name="workspaceWidget" native="true">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
       </property>
-      <property name="alignment">
-       <set>Qt::AlignmentFlag::AlignCenter</set>
-      </property>
+      <layout class="QVBoxLayout" name="workspaceLayout" stretch="0,1,0">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="workspaceTitleLabel">
+         <property name="font">
+          <font>
+           <pointsize>16</pointsize>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>MCU Debug Tool 工作区</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QWidget" name="dataAreaWidget" native="true">
+         <layout class="QHBoxLayout" name="dataAreaLayout" stretch="1,1">
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QTabWidget" name="visualTabs">
+            <widget class="QWidget" name="visualPlaceholderPage">
+             <attribute name="title">
+              <string>数据显示</string>
+             </attribute>
+             <layout class="QVBoxLayout" name="visualPlaceholderLayout">
+              <item>
+               <widget class="QLabel" name="visualHintLabel">
+                <property name="text">
+                 <string>Day 6 将在这里加载数据显示插件</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignmentFlag::AlignCenter</set>
+                </property>
+                <property name="wordWrap">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </widget>
+          </item>
+          <item>
+           <widget class="QTabWidget" name="controlTabs">
+            <widget class="QWidget" name="controlPlaceholderPage">
+             <attribute name="title">
+              <string>命令控制</string>
+             </attribute>
+             <layout class="QVBoxLayout" name="controlPlaceholderLayout">
+              <item>
+               <widget class="QLabel" name="controlHintLabel">
+                <property name="text">
+                 <string>Day 6 将在这里加载控制插件</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignmentFlag::AlignCenter</set>
+                </property>
+                <property name="wordWrap">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="activityGroupBox">
+         <property name="title">
+          <string>活动日志</string>
+         </property>
+         <layout class="QVBoxLayout" name="activityLayout">
+          <item>
+           <widget class="QPlainTextEdit" name="activityLog">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>150</height>
+             </size>
+            </property>
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+            <property name="placeholderText">
+             <string>程序运行记录会显示在这里</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
      </widget>
-    </item>
-    <item>
-     <spacer name="verticalSpacerBottom">
-      <property name="orientation">
-       <enum>Qt::Orientation::Vertical</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>20</width>
-        <height>240</height>
-       </size>
-      </property>
-     </spacer>
     </item>
    </layout>
   </widget>
-  <widget class="QMenuBar" name="menuBar"/>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1100</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>文件(&amp;F)</string>
+    </property>
+    <addaction name="actionExit"/>
+   </widget>
+   <widget class="QMenu" name="menuPlugins">
+    <property name="title">
+     <string>插件(&amp;P)</string>
+    </property>
+    <addaction name="actionRescanPlugins"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuPlugins"/>
+  </widget>
   <widget class="QStatusBar" name="statusBar"/>
+  <action name="actionExit">
+   <property name="text">
+    <string>退出(&amp;X)</string>
+   </property>
+  </action>
+  <action name="actionRescanPlugins">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>重新扫描(&amp;R)</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>
