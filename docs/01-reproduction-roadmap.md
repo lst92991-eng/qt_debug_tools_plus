@@ -108,34 +108,34 @@ git push origin teaching/from-zero --tags
 - 没有串口、插件或协议代码；
 - 提交建议：`feat(day01): build main window shell`。
 
-## 5. Day 2：SDK 数据契约
+## 5. Day 2：第一种 SDK 数据契约
 
 ### 目标
 
-恢复稳定、最底层的公共契约：`DataFrame` 和四类插件接口。
+先恢复最底层、最容易单独验证的公共数据契约 `DataFrame`。四类插件接口不在同一天集中抄写，而是在出现第一个真实调用者时逐步引入。
 
 ### 添加内容
 
 - `src/sdk/DataFrame.h/.cpp`；
-- `IPhysicalPlugin`；
-- `IProtocolPlugin`；
-- `IVisualPlugin`；
-- `IControlPlugin`；
-- 独立 `mcd_sdk` 静态库 target。
+- `FrameDirection`、`ChannelSample` 和 `DataFrame`；
+- 自定义 Qt 元类型注册；
+- 微秒级系统时间函数；
+- 独立 `mcd_sdk` 静态库 target；
+- 一个由 CTest 执行的无界面测试。
 
 ### 学习重点
 
-- `Q_DECLARE_INTERFACE`、IID 和 `QVariantMap`；
-- 原始字节、解析帧、可视化样本和控制命令的边界；
-- 为什么接口不能依赖 `MainWindow`；
-- 为什么协议常量不能复制到多个插件。
+- `enum class`、`struct` 和默认值；
+- 原始字节、数值通道和扩展属性为什么放在同一帧中；
+- Qt 自定义类型注册为什么是后续跨线程信号槽的前提；
+- CMake 如何把源码组织为静态库并挂入 CTest。
 
 ### 验收
 
 - 主程序链接 `mcd_sdk` 后仍能运行；
-- 接口头文件没有设备 API 和页面逻辑；
-- 为字段、方向和时间戳写最小单元测试或控制台断言；
-- 提交建议：`feat(day02): define plugin sdk contracts`。
+- `DataFrame` 不依赖设备 API 和页面逻辑；
+- 默认方向、NaN、时间戳、原始负载和通道字段测试通过；
+- 提交建议：`feat(day02): add shared data frame`。
 
 ## 6. Day 3：插件装载
 
@@ -147,6 +147,7 @@ git push origin teaching/from-zero --tags
 
 - `PluginManager`；
 - `mcd_add_plugin()` CMake 函数；
+- 第一个 `IProtocolPlugin` 接口；
 - 一个最小 `raw_passthrough` 协议插件；
 - 插件 JSON manifest；
 - 主窗口“扫描插件”动作。
@@ -204,6 +205,7 @@ git push origin teaching/from-zero --tags
 ### 添加内容
 
 - CMake 增加 `Qt6::SerialPort`；
+- 引入 `IPhysicalPlugin` 接口；
 - `SerialGenericPlugin`；
 - `DeviceConfigDialog` 的串口参数；
 - 端口、波特率、数据位、校验、停止位和流控；
@@ -233,6 +235,7 @@ git push origin teaching/from-zero --tags
 ### 添加内容
 
 - 完善 `RawPassthroughPlugin`；
+- 引入 `IVisualPlugin` 和 `IControlPlugin` 接口；
 - `RawViewerPlugin`：HEX/ASCII、时间戳、过滤、暂停、清空；
 - `RawControlPlugin`：HEX 校验、发送历史、周期发送；
 - 主窗口动态挂载 visual/control 插件。

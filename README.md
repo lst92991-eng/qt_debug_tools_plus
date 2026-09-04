@@ -14,6 +14,7 @@
 - [从这里开始：零基础课程说明](docs/START-HERE.md)
 - [Day 0：环境安装与 Qt Creator 首次运行](docs/00-environment-and-qtcreator.md)
 - [Day 1：用 Designer 搭出主窗口外壳](docs/lessons/day01-main-window-shell.md)
+- [Day 2：建立第一种公共数据 DataFrame](docs/lessons/day02-data-frame.md)
 - [十阶段课程大纲](docs/01-reproduction-roadmap.md)
 
 当前 Day 0 和 Day 1 已达到“零基础可照做”的课件标准。Day 2 到 Day 10 目前是课程大纲，后续必须随着对应代码提交逐课补充完整操作、完整代码、预期结果和排错步骤，不能把大纲当成已完成教程。
