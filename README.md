@@ -9,6 +9,11 @@
 
 完整上位机源码保存在 `dev` 分支。学习时不要从 `dev` 复制整块代码，而是按照 `docs/` 中的路线逐层实现，每完成一个阶段就构建、测试并提交一次。
 
+## 教学入口
+
+- [Day 0：环境安装与 Qt Creator 首次运行](docs/00-environment-and-qtcreator.md)
+- [十阶段复现路线](docs/01-reproduction-roadmap.md)
+
 ## Day 0 运行目标
 
 在 Qt Creator 中打开根目录的 `CMakeLists.txt`，选择 `Desktop Qt 6.11.0 MSVC2022 64bit` Kit，完成配置后运行 `mcd_app`。看到“MCU Debug Tool 教学骨架”窗口即表示环境和工程骨架正常。
