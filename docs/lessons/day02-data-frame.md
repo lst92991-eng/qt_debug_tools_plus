@@ -18,6 +18,8 @@
 
 必须先完成 Day 1，能够运行主窗口外壳。
 
+请使用 `teaching-day-02-start-v2`。最早发布的 `teaching-day-02-start` 没有为普通 PowerShell 中的 CTest 显式设置 Qt DLL 路径，已经被 v2 替代。
+
 ### 第一次下载本课
 
 ```powershell
