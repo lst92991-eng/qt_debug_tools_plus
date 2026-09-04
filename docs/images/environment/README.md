@@ -32,15 +32,23 @@
 - `26-qt-install-complete.png`：Qt 安装完成页面；
 - `27-qt-kit-summary.png`：Qt Creator 中无红色错误的 Desktop Kit。
 
+## VS Code
+
+- `30-vscode-install-options.png`：资源管理器菜单、文件关联和 PATH 选项；
+- `31-vscode-official-extensions.png`：Qt Company 与 Microsoft 官方扩展；
+- `32-vscode-register-qt.png`：注册 `D:\QT`；
+- `33-vscode-select-kit.png`：选择 Qt 6.11.0 MSVC 2022 x64 Kit；
+- `34-vscode-build.png`：CMake Configure/Build 成功。
+
 ## 新建工程
 
-- `30-new-project-template.png`：Qt Widgets Application 模板；
-- `31-project-location.png`：工程名称和路径；
-- `32-build-system.png`：CMake 选择；
-- `33-main-window-class.png`：MainWindow/QMainWindow 和 Generate form；
-- `34-kit-selection.png`：只选 MSVC 2022 64-bit Kit；
-- `35-first-build.png`：第一次 Build finished；
-- `36-empty-main-window.png`：学生亲手生成的空白窗口；
-- `37-first-git-commit.png`：第一次本地提交后的干净状态。
+- `40-new-project-template.png`：Qt Widgets Application 模板；
+- `41-project-location.png`：工程名称和路径；
+- `42-build-system.png`：CMake 选择；
+- `43-main-window-class.png`：MainWindow/QMainWindow 和 Generate form；
+- `44-kit-selection.png`：只选 MSVC 2022 64-bit Kit；
+- `45-first-build.png`：第一次 Build finished；
+- `46-empty-main-window.png`：学生亲手生成的空白窗口；
+- `47-first-git-commit.png`：第一次本地提交后的干净状态。
 
 每拍完一张先打开检查：文字必须能看清，窗口边缘不要被裁断，个人信息不能出现。文档确认采用后再提交原始 PNG。
