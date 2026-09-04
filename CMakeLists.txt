@@ -47,6 +47,8 @@ target_link_libraries(mcd_core PUBLIC mcd_sdk Qt6::Core Qt6::Widgets)
 add_executable(mcd_app
     src/app/AgvCanFdTest.cpp
     src/app/AgvCanFdTest.h
+    src/app/AppContext.cpp
+    src/app/AppContext.h
     src/app/DeviceConfigDialog.cpp
     src/app/DeviceConfigDialog.h
     src/app/MainWindow.cpp

@@ -34,16 +34,22 @@ On Linux, install Qt 6 Widgets, Qt 6 SerialPort, and `libusb-1.0` development he
 
 On Windows, USB Raw requires a device already bound to WinUSB and a configured device interface GUID. VID/PID and bulk endpoint addresses can be set from the device configuration dialog.
 
-On this Windows setup the verified build command is:
+On this Windows setup the verified Qt baseline is Qt 6.11.0 with the
+`msvc2022_64` kit. The build command is:
 
 ```powershell
-& 'C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe' -S . -B build-vs18 -G 'Visual Studio 18 2026' -A x64 -DCMAKE_PREFIX_PATH=D:/Qt/6.9.3/msvc2022_64
-& 'C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe' --build build-vs18 --config Release --parallel
-.\build-vs18\bin\Release\mcd_app.exe --smoke-test
+$vsCmake = 'C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe'
+& $vsCmake -S . -B build -G 'Visual Studio 18 2026' -A x64 -DCMAKE_PREFIX_PATH=D:/App/Qt/6.11.0/msvc2022_64
+& $vsCmake --build build --config Release --parallel
+.\build\bin\Release\mcd_app.exe --smoke-test
 ```
+
+Use the same CMake executable for configure and build; mixing the system and
+Visual Studio CMake installations can mix incompatible module versions.
 
 ## Design Docs
 
+- `docs/qt-development-and-component-guide.md`: complete Qt installation, environment setup, class map, architecture, and component-development guide.
 - `docs/realtime-pool-refactor-plan.md`: realtime pool refactor plan with ingest, dispatch, and UI thread responsibilities.
 - `docs/plugin-development-spec.md`: plugin development flow and design rules for physical, protocol, visual, and control plugins.
 - `docs/agv-canfd-integration-test-2026-08-11.md`: verified AGV CAN FD settings, 300 mm command sequence, results, and known limitations.

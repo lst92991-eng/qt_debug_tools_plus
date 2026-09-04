@@ -22,10 +22,12 @@ namespace Ui {
 class MainWindow;
 }
 
+class AppContext;
+
 class MainWindow : public QMainWindow {
     Q_OBJECT
 public:
-    explicit MainWindow(QWidget* parent = nullptr);
+    explicit MainWindow(AppContext& context, QWidget* parent = nullptr);
     ~MainWindow() override;
 
 private:
@@ -53,9 +55,9 @@ private:
     void setConnected(bool connected);
     IPhysicalPlugin* selectedPhysical() const;
     IProtocolPlugin* selectedProtocol() const;
-    QString pluginRoot() const;
 
     std::unique_ptr<Ui::MainWindow> m_ui;
+    AppContext& m_context;
     DebugCore* m_core = nullptr;
     QComboBox* m_physicalCombo = nullptr;
     QComboBox* m_protocolCombo = nullptr;

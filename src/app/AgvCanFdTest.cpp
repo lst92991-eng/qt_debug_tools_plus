@@ -1,9 +1,9 @@
 #include "app/AgvCanFdTest.h"
 
+#include "app/AppContext.h"
 #include "core/DebugCore.h"
 
 #include <QApplication>
-#include <QDir>
 #include <QElapsedTimer>
 #include <QRandomGenerator>
 #include <QSet>
@@ -157,10 +157,11 @@ QByteArray makeGoto300(quint16 sequence, quint32 session)
 
 class AgvCanFdTestRunner {
 public:
-    AgvCanFdTestRunner(QApplication& app, bool move300mm)
+    AgvCanFdTestRunner(QApplication& app, AppContext& context, bool move300mm)
         : m_app(app)
         , m_move300mm(move300mm)
-        , m_core(DebugCore::instance())
+        , m_context(context)
+        , m_core(context.debugCore())
         , m_out(stdout)
         , m_err(stderr)
     {
@@ -168,10 +169,7 @@ public:
 
     int run()
     {
-        m_core->initialize();
-        const QString pluginRoot = QDir(QCoreApplication::applicationDirPath())
-                                       .filePath(QStringLiteral("plugins"));
-        m_core->pluginManager()->scanPlugins(pluginRoot);
+        m_context.scanPlugins();
 
         QObject::connect(m_core, &DebugCore::errorOccurred, &m_app,
                          [this](const QString& message) {
@@ -556,6 +554,7 @@ private:
 
     QApplication& m_app;
     bool m_move300mm = false;
+    AppContext& m_context;
     DebugCore* m_core = nullptr;
     QTextStream m_out;
     QTextStream m_err;
@@ -581,8 +580,8 @@ private:
 
 } // namespace
 
-int runAgvCanFdTest(QApplication& app, bool move300mm)
+int runAgvCanFdTest(QApplication& app, AppContext& context, bool move300mm)
 {
-    AgvCanFdTestRunner runner(app, move300mm);
+    AgvCanFdTestRunner runner(app, context, move300mm);
     return runner.run();
 }

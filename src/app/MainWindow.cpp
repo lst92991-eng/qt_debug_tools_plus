@@ -1,10 +1,10 @@
 #include "MainWindow.h"
 
+#include "app/AppContext.h"
 #include "app/DeviceConfigDialog.h"
 #include "ui_MainWindow.h"
 
 #include <QApplication>
-#include <QCoreApplication>
 #include <QDateTime>
 #include <QDialog>
 #include <QDialogButtonBox>
@@ -33,12 +33,12 @@
 
 #include <algorithm>
 
-MainWindow::MainWindow(QWidget* parent)
+MainWindow::MainWindow(AppContext& context, QWidget* parent)
     : QMainWindow(parent)
     , m_ui(std::make_unique<Ui::MainWindow>())
-    , m_core(DebugCore::instance())
+    , m_context(context)
+    , m_core(context.debugCore())
 {
-    m_core->initialize();
     buildUi();
     connect(m_core, &DebugCore::errorOccurred, this, [this](const QString& message) {
         statusBar()->showMessage(message, 6000);
@@ -219,8 +219,7 @@ void MainWindow::buildUi()
 
 void MainWindow::scanPlugins()
 {
-    const QString root = pluginRoot();
-    m_core->pluginManager()->scanPlugins(root);
+    m_context.scanPlugins();
     appendActivity(tr("Scanned plugins"));
     statusBar()->showMessage(tr("Plugins scanned"), 5000);
 }
@@ -746,19 +745,4 @@ IProtocolPlugin* MainWindow::selectedProtocol() const
         }
     }
     return nullptr;
-}
-
-QString MainWindow::pluginRoot() const
-{
-    const QString appPlugins = QDir(QCoreApplication::applicationDirPath()).filePath(QStringLiteral("plugins"));
-    if (QDir(appPlugins).exists()) {
-        return appPlugins;
-    }
-
-    const QString cwdPlugins = QDir(QDir::currentPath()).filePath(QStringLiteral("plugins"));
-    if (QDir(cwdPlugins).exists()) {
-        return cwdPlugins;
-    }
-
-    return appPlugins;
 }
