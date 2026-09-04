@@ -1,6 +1,6 @@
-# Day 0：环境安装与 Qt Creator 首次运行
+# 第一步：从零安装开发环境并首次运行
 
-## 1. 今天的目标
+## 1. 这一步的目标和边界
 
 完成下面六件事就停，不进入串口、插件或 CAN FD 代码：
 
@@ -12,6 +12,10 @@
 6. 编译并运行当前最小骨架，看到“MCU Debug Tool 教学骨架”窗口。
 
 本工程固定使用 Windows x64、Qt 6.11.0、MSVC 2022、C++17 和 CMake。Qt 6.11 官方 Windows 支持表列出的编译器是 MSVC 2022，因此新手环境优先安装 Visual Studio 2022，不以“机器上恰好能编译”为标准。
+
+这一课从“电脑上没有任何开发工具”开始。学生不需要预先理解 Git、编译器、Qt、CMake 或 Kit。每安装完一项都要立即验证；前一项验证失败时，不继续安装下一项。
+
+本步骤的结束条件只有一个：学生能在 Qt Creator 中亲自构建并运行最小窗口。界面、串口、插件和 CAN FD 都属于后续课程。
 
 ## 2. 准备条件
 
@@ -157,7 +161,7 @@ GitHub 官方把“克隆”定义为把远程仓库完整复制到本机。即�
 4. 在打开的蓝色或黑色窗口中逐行执行：
 
 ```powershell
-git clone --branch teaching/from-zero https://github.com/lst92991-eng/qt_debug_tools_plus.git
+git clone --branch teaching/environment-setup https://github.com/lst92991-eng/qt_debug_tools_plus.git
 Set-Location .\qt_debug_tools_plus
 git status
 ```
@@ -165,8 +169,8 @@ git status
 正常结果应包含：
 
 ```text
-On branch teaching/from-zero
-Your branch is up to date with 'origin/teaching/from-zero'.
+On branch teaching/environment-setup
+Your branch is up to date with 'origin/teaching/environment-setup'.
 nothing to commit, working tree clean
 ```
 
@@ -179,7 +183,7 @@ nothing to commit, working tree clean
 在仓库终端执行：
 
 ```powershell
-git switch teaching/from-zero
+git switch teaching/environment-setup
 git pull
 git status
 ```
@@ -298,7 +302,7 @@ git config --global --unset https.proxy
 
 - [ ] `git --version` 能输出版本号；
 - [ ] 已设置自己的 Git 用户名和邮箱；
-- [ ] 已克隆并进入 `teaching/from-zero` 分支；
+- [ ] 已克隆并进入 `teaching/environment-setup` 分支；
 - [ ] Qt Creator 能打开根目录 `CMakeLists.txt`；
 - [ ] Kit 名称明确包含 Qt 6.11.0、MSVC 2022 和 64-bit；
 - [ ] Debug 构建无错误；
