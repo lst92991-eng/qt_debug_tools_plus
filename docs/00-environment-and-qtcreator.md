@@ -126,7 +126,7 @@ Qt 使用清华大学 TUNA 镜像下载 Online Installer，并让安装器后续
 ```
 
 6. 登录或注册 Qt Account，并完成邮箱验证；
-7. 安装目录统一填写 `C:\Qt`；
+7. 安装目录统一填写 `D:\QT`；
 8. 安装类型选择 `Custom Installation` / `自定义安装`；
 9. 在组件树中按下面表格勾选。
 
@@ -156,13 +156,13 @@ Qt 使用清华大学 TUNA 镜像下载 Online Installer，并让安装器后续
 
 ### 安装后核对文件
 
-安装目录统一使用 `C:\Qt`，安装后应能找到：
+安装目录统一使用 `D:\QT`，安装后应能找到：
 
 ```text
-C:\Qt\6.11.0\msvc2022_64\bin\qmake.exe
-C:\Qt\6.11.0\msvc2022_64\bin\windeployqt.exe
-C:\Qt\6.11.0\msvc2022_64\lib\cmake\Qt6\Qt6Config.cmake
-C:\Qt\6.11.0\msvc2022_64\lib\cmake\Qt6SerialPort\Qt6SerialPortConfig.cmake
+D:\QT\6.11.0\msvc2022_64\bin\qmake.exe
+D:\QT\6.11.0\msvc2022_64\bin\windeployqt.exe
+D:\QT\6.11.0\msvc2022_64\lib\cmake\Qt6\Qt6Config.cmake
+D:\QT\6.11.0\msvc2022_64\lib\cmake\Qt6SerialPort\Qt6SerialPortConfig.cmake
 ```
 
 Qt Creator 的实际目录会随安装器版本变化，优先从开始菜单启动，不要照抄某一台电脑的绝对路径。
@@ -170,12 +170,12 @@ Qt Creator 的实际目录会随安装器版本变化，优先从开始菜单启
 重新打开 PowerShell，逐条验证 Qt、CMake 和 Ninja：
 
 ```powershell
-& 'C:\Qt\6.11.0\msvc2022_64\bin\qmake.exe' -query QT_VERSION
-& 'C:\Qt\Tools\CMake_64\bin\cmake.exe' --version
-& 'C:\Qt\Tools\Ninja\ninja.exe' --version
+& 'D:\QT\6.11.0\msvc2022_64\bin\qmake.exe' -query QT_VERSION
+& 'D:\QT\Tools\CMake_64\bin\cmake.exe' --version
+& 'D:\QT\Tools\Ninja\ninja.exe' --version
 ```
 
-第一条必须输出 `6.11.0`，后两条必须输出各自版本号。任意一条提示“找不到路径”时，先运行 `C:\Qt\MaintenanceTool.exe` 补装对应组件，不进入下一步。
+第一条必须输出 `6.11.0`，后两条必须输出各自版本号。任意一条提示“找不到路径”时，先运行 `D:\QT\MaintenanceTool.exe` 补装对应组件，不进入下一步。
 
 ## 6. 第一次启动 Qt Creator 并检查 Kit
 
@@ -190,17 +190,17 @@ Qt Creator 的实际目录会随安装器版本变化，优先从开始菜单启
 
 | 标签页 | 必须看到的内容 |
 | --- | --- |
-| Qt Versions | Qt 6.11.0，路径指向 `C:\Qt\6.11.0\msvc2022_64\bin\qmake.exe` |
+| Qt Versions | Qt 6.11.0，路径指向 `D:\QT\6.11.0\msvc2022_64\bin\qmake.exe` |
 | Compilers | Microsoft Visual C++ x64 编译器 |
-| CMake | 路径指向 `C:\Qt\Tools\CMake_64\bin\cmake.exe` 或另一可用 CMake |
+| CMake | 路径指向 `D:\QT\Tools\CMake_64\bin\cmake.exe` 或另一可用 CMake |
 | Debuggers | 适用于 x64 的 CDB 调试器 |
 | Kits | `Desktop Qt 6.11.0 MSVC2022 64bit`，前面没有红色感叹号 |
 
 Qt Creator 随 Qt 一起安装时通常会自动识别这些工具。如果没有自动识别，按下面顺序修复：
 
-1. 在 `Qt Versions` 点 `Add`，选择 `C:\Qt\6.11.0\msvc2022_64\bin\qmake.exe`；
+1. 在 `Qt Versions` 点 `Add`，选择 `D:\QT\6.11.0\msvc2022_64\bin\qmake.exe`；
 2. 在 `Compilers` 确认有 Microsoft Visual C++ x64；没有时关闭 Qt Creator，修复 Visual Studio C++ 工作负载后重开；
-3. 在 `CMake` 点 `Add`，选择 `C:\Qt\Tools\CMake_64\bin\cmake.exe`；
+3. 在 `CMake` 点 `Add`，选择 `D:\QT\Tools\CMake_64\bin\cmake.exe`；
 4. 在 `Debuggers` 确认有 x64 CDB；没有时回 Visual Studio Installer 增加 Windows 调试工具；
 5. 在 `Kits` 点 `Add`，Device type 选 Desktop，Qt version 选 6.11.0，C/C++ compiler 选 MSVC x64，CMake tool 选刚才的 CMake，Debugger 选 x64 CDB；
 6. Kit 名称填写 `Desktop Qt 6.11.0 MSVC2022 64bit`；
@@ -224,16 +224,16 @@ Kit 是“设备 + 编译器 + Qt 版本 + 调试器 + 构建工具”的固定�
 
 ```text
 Name：MCUDebugTool
-Create in：C:\QtProjects
+Create in：D:\QtProjects
 ```
 
-如果 `C:\QtProjects` 不存在，允许向导创建。最终项目目录必须是：
+如果 `D:\QtProjects` 不存在，允许向导创建。最终项目目录必须是：
 
 ```text
-C:\QtProjects\MCUDebugTool
+D:\QtProjects\MCUDebugTool
 ```
 
-不要把项目放在 `C:\Qt` 安装目录、桌面、下载文件夹或中文/空格很多的路径中。
+不要把项目放在 `D:\QT` 安装目录、桌面、下载文件夹或中文/空格很多的路径中。
 
 ### 7.3 选择构建系统
 
@@ -304,7 +304,7 @@ mainwindow.ui
 在 Qt Creator 中选择 `文件/File > 新建文件/New File or Project > General > Empty File`，文件名填写 `.gitignore`，保存到：
 
 ```text
-C:\QtProjects\MCUDebugTool\.gitignore
+D:\QtProjects\MCUDebugTool\.gitignore
 ```
 
 输入：
@@ -323,7 +323,7 @@ CMakeUserPresets.json
 
 ### 9.2 初始化和提交
 
-在文件资源管理器打开 `C:\QtProjects\MCUDebugTool`，点击地址栏输入 `powershell` 并按 Enter，然后执行：
+在文件资源管理器打开 `D:\QtProjects\MCUDebugTool`，点击地址栏输入 `powershell` 并按 Enter，然后执行：
 
 ```powershell
 git status
@@ -356,7 +356,7 @@ nothing to commit, working tree clean
 
 ### `Could not find Qt6Config.cmake`
 
-选错 Kit 或 Qt version 没有注册。回到 `Preferences > Kits > Qt Versions`，添加 `C:\Qt\6.11.0\msvc2022_64\bin\qmake.exe`，不要全局乱加 PATH。
+选错 Kit 或 Qt version 没有注册。回到 `Preferences > Kits > Qt Versions`，添加 `D:\QT\6.11.0\msvc2022_64\bin\qmake.exe`，不要全局乱加 PATH。
 
 ### `No CMAKE_CXX_COMPILER could be found`
 
@@ -408,7 +408,7 @@ git config --global user.email "你的邮箱"
 - [ ] CMake 和 Ninja 都能输出版本号；
 - [ ] Kit 名称明确包含 Qt 6.11.0、MSVC 2022 和 64-bit；
 - [ ] 学生没有克隆或复制任何现成项目；
-- [ ] 已通过 Qt Creator 向导创建 `C:\QtProjects\MCUDebugTool`；
+- [ ] 已通过 Qt Creator 向导创建 `D:\QtProjects\MCUDebugTool`；
 - [ ] 工程包含 `CMakeLists.txt`、`main.cpp`、`mainwindow.cpp/.h/.ui`；
 - [ ] Debug 构建无错误；
 - [ ] 空白 MainWindow 能启动；

@@ -23,7 +23,7 @@
 
 ## 第一步运行目标
 
-学生在 Qt Creator 中选择 `Desktop Qt 6.11.0 MSVC2022 64bit` Kit，通过向导创建 `C:\QtProjects\MCUDebugTool`，完成 Debug 构建并看到空白 `MainWindow`，即表示环境正常。
+学生在 Qt Creator 中选择 `Desktop Qt 6.11.0 MSVC2022 64bit` Kit，通过向导创建 `D:\QtProjects\MCUDebugTool`，完成 Debug 构建并看到空白 `MainWindow`，即表示环境正常。
 
 ## 分支用途
 
