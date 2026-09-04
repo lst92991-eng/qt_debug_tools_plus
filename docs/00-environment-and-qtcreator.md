@@ -8,14 +8,14 @@
 2. 安装 Git 并完成最基本配置；
 3. 安装 MSVC C++ 编译环境；
 4. 安装 Qt 6.11.0、Qt Creator 和必要工具；
-5. 克隆教学分支并让 Qt Creator 识别 `MSVC 2022 64-bit` Kit；
-6. 编译并运行当前最小骨架，看到“MCU Debug Tool 教学骨架”窗口。
+5. 让 Qt Creator 识别 `MSVC 2022 64-bit` Kit；
+6. 不下载任何现成项目，亲手新建、编译并运行一个 Qt Widgets 工程。
 
 本工程固定使用 Windows x64、Qt 6.11.0、MSVC 2022、C++17 和 CMake。Qt 6.11 官方 Windows 支持表列出的编译器是 MSVC 2022，因此新手环境优先安装 Visual Studio 2022，不以“机器上恰好能编译”为标准。
 
 这一课从“电脑上没有任何开发工具”开始。学生不需要预先理解 Git、编译器、Qt、CMake 或 Kit。每安装完一项都要立即验证；前一项验证失败时，不继续安装下一项。
 
-本步骤的结束条件只有一个：学生能在 Qt Creator 中亲自构建并运行最小窗口。界面、串口、插件和 CAN FD 都属于后续课程。
+本步骤的结束条件只有一个：学生能在 Qt Creator 中从新建项目向导开始，亲自生成、构建并运行一个空白窗口。界面、串口、插件和 CAN FD 都属于后续课程。
 
 > 验证状态：本文中的工具路径、CMake 配置和最小程序已在现有开发机验证。由于现有开发机原本已经安装开发环境，还必须在一台干净 Windows 机器或虚拟机上，从下载 Git 开始完整执行一次，才能把本课标记为最终完成。
 
@@ -25,16 +25,19 @@
 
 - Windows 10 1809 或更高版本，推荐 Windows 11 x64；
 - 当前 Windows 账号有管理员权限；
-- 至少预留 20 GB 可用空间；
-- 网络能访问 GitHub、Qt 和 Microsoft；
-- 准备一个 GitHub 账号，用于后续拉取和推送；
+- 至少预留 30 GB 可用空间；
+- 网络能访问清华大学开源软件镜像站和 Microsoft 下载服务；
 - 准备一个 Qt Account，Qt Online Installer 登录时使用。
 
 本教程只讲 Windows x64。不要在第一次学习时同时尝试 Linux、ARM64 或 MinGW。
 
 ## 3. 安装 Git
 
-官方入口：[Git for Windows](https://git-scm.com/install/windows)。普通 Intel/AMD Windows 电脑下载 x64 Setup，不选 ARM64 和 Portable。
+国内下载入口：[清华大学 TUNA 的 Git for Windows LatestRelease](https://mirrors.tuna.tsinghua.edu.cn/github-release/git-for-windows/git/LatestRelease/)。
+
+普通 Intel/AMD Windows 电脑选择文件名以 `-64-bit.exe` 结尾的安装版，不选择 ARM64、PortableGit、MinGit、`.zip` 或 `.tar.bz2`。截至本文验证时，示例文件名是 `Git-2.55.0.5-64-bit.exe`；镜像更新后版本号可能增加，仍按上述文件名规则选择最新版。
+
+下载后右键安装包，选择“属性 > 数字签名”，确认存在有效签名再运行。不要从网盘、个人博客附件或来路不明的软件站下载安装包。Git 官方版本页可用于核对当前版本：[Git for Windows](https://git-scm.com/install/windows)。
 
 运行安装器时，大部分页面保留默认值。遇到下面选项时这样选：
 
@@ -42,7 +45,7 @@
 | --- | --- |
 | Select Components | 保留 Windows Explorer integration 和 Git Credential Manager |
 | Choosing the default editor | 可保留默认；这套教程主要在 Qt Creator 编辑代码 |
-| Adjusting the name of the initial branch | 选择 `Override...` 并填 `main`，或保留安装器默认 |
+| Adjusting the name of the initial branch | 选择 `Override...` 并填 `main` |
 | Adjusting your PATH environment | `Git from the command line and also from 3rd-party software` |
 | Choosing the SSH executable | `Use bundled OpenSSH` |
 | Choosing HTTPS transport backend | `Use the OpenSSL library` |
@@ -57,11 +60,11 @@
 git --version
 ```
 
-能看到 `git version 2.x.x` 即安装成功。第一次使用还要设置提交署名，把示例替换为你自己的名字和 GitHub 邮箱：
+能看到 `git version 2.x.x` 即安装成功。第一次使用还要设置提交署名，把示例替换为你自己的名字和常用邮箱：
 
 ```powershell
 git config --global user.name "你的名字"
-git config --global user.email "你的GitHub邮箱"
+git config --global user.email "你的邮箱"
 git config --global --list
 ```
 
@@ -73,10 +76,11 @@ git config --global --list
 
 下载入口：
 
+- [Microsoft 官方：Visual Studio 2022 Community 安装器](https://aka.ms/vs/17/release/vs_Community.exe)
 - [Microsoft：Visual Studio 2022 Release History](https://learn.microsoft.com/en-us/visualstudio/releases/2022/release-history)
 - [Qt 6.11：Windows 支持配置](https://doc.qt.io/qt-6/windows.html)
 
-个人学习可选 Visual Studio 2022 Community；只想安装命令行编译器也可选 Build Tools 2022。为了后续调试方便，本教程建议 Community。
+MSVC 和 Windows SDK 是 Microsoft 的专有组件，不使用第三方重打包镜像。国内网络直接下载 Microsoft 官方小型引导程序，再由 Visual Studio Installer 下载组件。个人学习选择 Visual Studio 2022 Community；为了后续调试方便，本教程不选只有命令行工具的 Build Tools 版。
 
 打开 Visual Studio Installer 后：
 
@@ -101,20 +105,30 @@ git config --global --list
 
 ## 5. 安装 Qt 6.11.0
 
-Qt 官方建议桌面新用户使用图形化 Online Installer；它可以交互选择版本、模块和工具，安装后也能通过 Maintenance Tool 增删组件。
+Qt 使用清华大学 TUNA 镜像下载 Online Installer，并让安装器后续也从同一镜像获取组件。安装后仍可通过 Maintenance Tool 增删组件。
 
-官方入口：
+下载和使用说明：
 
-- [Qt：Get and Install Qt](https://doc.qt.io/qt-6/get-and-install-qt.html)
-- [Qt：Online Installer 安装步骤](https://doc.qt.io/qt-6/qt-online-installation.html)
+- [清华大学 TUNA：Qt 镜像使用帮助](https://mirrors.tuna.tsinghua.edu.cn/help/qt/)
+- [清华大学 TUNA：Qt Windows 在线安装器目录](https://mirrors.tuna.tsinghua.edu.cn/qt/official_releases/online_installers/)
+- [Qt 官方：Online Installer 安装说明](https://doc.qt.io/qt-6/qt-online-installation.html)
 
 ### 安装步骤
 
-1. 注册或登录 Qt Account；
-2. 下载 Windows x64 的 Qt Online Installer；
-3. 安装目录建议设为 `D:\App\Qt`；没有 D 盘可用 `C:\Qt`，但后续路径要相应替换；
-4. 安装类型选择 `Custom Installation` / `自定义安装`；
-5. 在组件树中按下面表格勾选。
+1. 打开清华镜像的在线安装器目录；
+2. 下载 `qt-online-installer-windows-x64-online.exe`，不要选择 ARM64；
+3. 在文件资源管理器进入“下载”文件夹；
+4. 点击地址栏，输入 `powershell` 后按 Enter；
+5. 在打开的 PowerShell 中执行：
+
+```powershell
+.\qt-online-installer-windows-x64-online.exe --mirror https://mirrors.tuna.tsinghua.edu.cn/qt
+```
+
+6. 登录或注册 Qt Account，并完成邮箱验证；
+7. 安装目录统一填写 `C:\Qt`；
+8. 安装类型选择 `Custom Installation` / `自定义安装`；
+9. 在组件树中按下面表格勾选。
 
 ### 必选和建议组件
 
@@ -142,129 +156,207 @@ Qt 官方建议桌面新用户使用图形化 Online Installer；它可以交互
 
 ### 安装后核对文件
 
-如果安装目录是 `D:\App\Qt`，应能找到：
+安装目录统一使用 `C:\Qt`，安装后应能找到：
 
 ```text
-D:\App\Qt\6.11.0\msvc2022_64\bin\qmake.exe
-D:\App\Qt\6.11.0\msvc2022_64\bin\windeployqt.exe
-D:\App\Qt\6.11.0\msvc2022_64\lib\cmake\Qt6\Qt6Config.cmake
-D:\App\Qt\6.11.0\msvc2022_64\lib\cmake\Qt6SerialPort\Qt6SerialPortConfig.cmake
+C:\Qt\6.11.0\msvc2022_64\bin\qmake.exe
+C:\Qt\6.11.0\msvc2022_64\bin\windeployqt.exe
+C:\Qt\6.11.0\msvc2022_64\lib\cmake\Qt6\Qt6Config.cmake
+C:\Qt\6.11.0\msvc2022_64\lib\cmake\Qt6SerialPort\Qt6SerialPortConfig.cmake
 ```
 
 Qt Creator 的实际目录会随安装器版本变化，优先从开始菜单启动，不要照抄某一台电脑的绝对路径。
 
-## 6. 下载教学工程
-
-GitHub 官方把“克隆”定义为把远程仓库完整复制到本机。即使你以前从未使用 Git，也只需要按下面步骤操作。
-
-1. 在 D 盘创建 `D:\Code` 文件夹；没有 D 盘则创建 `C:\Code`；
-2. 双击进入该文件夹；
-3. 点击文件资源管理器顶部地址栏，输入 `powershell` 并按 Enter；
-4. 在打开的蓝色或黑色窗口中逐行执行：
+重新打开 PowerShell，逐条验证 Qt、CMake 和 Ninja：
 
 ```powershell
-git clone --branch teaching/environment-setup https://github.com/lst92991-eng/qt_debug_tools_plus.git
-Set-Location .\qt_debug_tools_plus
+& 'C:\Qt\6.11.0\msvc2022_64\bin\qmake.exe' -query QT_VERSION
+& 'C:\Qt\Tools\CMake_64\bin\cmake.exe' --version
+& 'C:\Qt\Tools\Ninja\ninja.exe' --version
+```
+
+第一条必须输出 `6.11.0`，后两条必须输出各自版本号。任意一条提示“找不到路径”时，先运行 `C:\Qt\MaintenanceTool.exe` 补装对应组件，不进入下一步。
+
+## 6. 第一次启动 Qt Creator 并检查 Kit
+
+这一节仍然不下载任何项目。
+
+1. 打开 Windows 开始菜单；
+2. 搜索并启动 `Qt Creator`；
+3. 第一次启动出现欢迎或隐私设置时保持默认，进入主界面；
+4. 选择 `编辑/Edit > Preferences/首选项 > Kits`。
+
+依次打开各标签页检查：
+
+| 标签页 | 必须看到的内容 |
+| --- | --- |
+| Qt Versions | Qt 6.11.0，路径指向 `C:\Qt\6.11.0\msvc2022_64\bin\qmake.exe` |
+| Compilers | Microsoft Visual C++ x64 编译器 |
+| CMake | 路径指向 `C:\Qt\Tools\CMake_64\bin\cmake.exe` 或另一可用 CMake |
+| Debuggers | 适用于 x64 的 CDB 调试器 |
+| Kits | `Desktop Qt 6.11.0 MSVC2022 64bit`，前面没有红色感叹号 |
+
+Qt Creator 随 Qt 一起安装时通常会自动识别这些工具。如果没有自动识别，按下面顺序修复：
+
+1. 在 `Qt Versions` 点 `Add`，选择 `C:\Qt\6.11.0\msvc2022_64\bin\qmake.exe`；
+2. 在 `Compilers` 确认有 Microsoft Visual C++ x64；没有时关闭 Qt Creator，修复 Visual Studio C++ 工作负载后重开；
+3. 在 `CMake` 点 `Add`，选择 `C:\Qt\Tools\CMake_64\bin\cmake.exe`；
+4. 在 `Debuggers` 确认有 x64 CDB；没有时回 Visual Studio Installer 增加 Windows 调试工具；
+5. 在 `Kits` 点 `Add`，Device type 选 Desktop，Qt version 选 6.11.0，C/C++ compiler 选 MSVC x64，CMake tool 选刚才的 CMake，Debugger 选 x64 CDB；
+6. Kit 名称填写 `Desktop Qt 6.11.0 MSVC2022 64bit`；
+7. 点 `Apply`，确认 Kit 没有红色错误提示。
+
+Kit 是“设备 + 编译器 + Qt 版本 + 调试器 + 构建工具”的固定组合。官方字段说明见 [Qt Creator：Managing kits](https://doc.qt.io/qtcreator/creator-preferences-kits.html)。
+
+## 7. 不拉项目，亲手新建第一个工程
+
+### 7.1 打开新建项目向导
+
+1. 回到 Qt Creator 欢迎页；
+2. 选择 `文件/File > 新建项目/New Project`；
+3. 左侧选择 `Application (Qt)` 或 `Application`；
+4. 右侧选择 `Qt Widgets Application`；
+5. 点击 `Choose/选择`。
+
+### 7.2 设置项目名称和保存位置
+
+在 Project Location 页面填写：
+
+```text
+Name：MCUDebugTool
+Create in：C:\QtProjects
+```
+
+如果 `C:\QtProjects` 不存在，允许向导创建。最终项目目录必须是：
+
+```text
+C:\QtProjects\MCUDebugTool
+```
+
+不要把项目放在 `C:\Qt` 安装目录、桌面、下载文件夹或中文/空格很多的路径中。
+
+### 7.3 选择构建系统
+
+Build System 选择：
+
+```text
+CMake
+```
+
+不要选择 qmake 或 Qbs。点击 Next。
+
+### 7.4 设置主窗口类
+
+在 Class Information 页面填写：
+
+```text
+Class name：MainWindow
+Base class：QMainWindow
+Header file：mainwindow.h
+Source file：mainwindow.cpp
+Form file：mainwindow.ui
+```
+
+勾选 `Generate form/生成窗体`，点击 Next。
+
+### 7.5 翻译和 Kit
+
+1. Translation file 选择 `None/无`，后续课程再讲翻译；
+2. Kit 只勾选 `Desktop Qt 6.11.0 MSVC2022 64bit`；
+3. 不勾选 MinGW、Android、WebAssembly 或 ARM64 Kit；
+4. Project Management 页如果能选择版本控制，选 `Git`；没有 Git 选项就选 None，稍后手动初始化；
+5. 点击 Finish。
+
+这是学生自己创建的项目，不包含你的仓库、成品源码或教学骨架。
+
+### 7.6 检查向导生成的文件
+
+Qt Creator 左侧项目树应至少出现：
+
+```text
+CMakeLists.txt
+main.cpp
+mainwindow.cpp
+mainwindow.h
+mainwindow.ui
+```
+
+双击 `mainwindow.ui` 应进入 Designer。现在不要添加控件，只确认设计器能打开。
+
+## 8. 第一次构建和运行自己的工程
+
+1. 点击左侧 `Projects/项目`；
+2. Build configuration 选择 `Debug`；
+3. 确认 Build directory 位于源码目录之外，使用 Qt Creator 自动给出的 shadow build 目录；
+4. 返回 Edit 模式；
+5. 点击左下角锤子，或按 `Ctrl+B`；
+6. 打开底部 `Compile Output/编译输出`；
+7. 看到 `Build finished` 且没有红色 error 后，点击绿色三角或按 `Ctrl+R`。
+
+正常结果是出现一个标题为 `MainWindow` 的空白窗口。关闭窗口后，Qt Creator 的 Application Output 不应显示崩溃。
+
+如果空白窗口能够出现，说明 Qt Creator、CMake、Ninja、MSVC、Windows SDK 和 Qt Widgets 已经真正协作成功。
+
+## 9. 用 Git 保存学生自己的第一个版本
+
+### 9.1 创建 .gitignore
+
+在 Qt Creator 中选择 `文件/File > 新建文件/New File or Project > General > Empty File`，文件名填写 `.gitignore`，保存到：
+
+```text
+C:\QtProjects\MCUDebugTool\.gitignore
+```
+
+输入：
+
+```gitignore
+build*/
+out/
+.qt/
+CMakeUserPresets.json
+*.user
+*.autosave
+*.log
+```
+
+保存文件。
+
+### 9.2 初始化和提交
+
+在文件资源管理器打开 `C:\QtProjects\MCUDebugTool`，点击地址栏输入 `powershell` 并按 Enter，然后执行：
+
+```powershell
 git status
 ```
 
-正常结果应包含：
+如果提示 `not a git repository`，继续执行：
+
+```powershell
+git init
+```
+
+随后执行：
+
+```powershell
+git add .
+git status --short
+git commit -m "chore: create Qt Widgets project"
+git status
+```
+
+提交前的 `git status --short` 应只包含源码、CMake 和 `.gitignore`，不能出现构建目录、`.exe`、`.obj` 或 `.user`。提交后应看到：
 
 ```text
-On branch teaching/environment-setup
-Your branch is up to date with 'origin/teaching/environment-setup'.
 nothing to commit, working tree clean
 ```
 
-如果你已经有本仓库，不要再次克隆到同一个目录，改为在原目录执行下一小节的切换命令。GitHub 的通用克隆步骤见 [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository)。
-
-## 7. 在 Qt Creator 中打开本教学工程
-
-### 7.1 已有仓库时切换到教学分支
-
-在仓库终端执行：
-
-```powershell
-git switch teaching/environment-setup
-git pull
-git status
-```
-
-预期最后一条显示工作区干净。完整成品在 `dev`，不要在学习过程中把 `dev` 合并进教学分支。
-
-### 7.2 打开工程
-
-1. 启动 Qt Creator；
-2. 选择 `文件/File > 打开文件或项目/Open File or Project`；
-3. 选择仓库根目录的 `CMakeLists.txt`；
-4. 进入“Configure Project/配置项目”页；
-5. 只勾选 `Desktop Qt 6.11.0 MSVC2022 64bit`；
-6. Build type 选 `Debug`；
-7. 构建目录使用源码目录外的影子目录，或仓库下独立的 `build-qtcreator-debug`；
-8. 点 `Configure Project`。
-
-不要复用曾被 Visual Studio 生成器或另一套 CMake 配置过的 `build` 目录。生成器、CMake 或 Kit 变化时，直接新建一个构建目录最稳妥。
-
-### 7.3 如果没有正确的 Kit
-
-Qt Creator 官方说明：随 Qt 一起安装时通常能自动识别；如果没有识别，需要在 `编辑/Edit > Preferences > Kits` 手动补齐。
-
-按顺序检查：
-
-1. `Qt Versions`：点 `Add`，选择 `D:\App\Qt\6.11.0\msvc2022_64\bin\qmake.exe`；
-2. `Compilers`：确认有 Microsoft Visual C++ x64 编译器；
-3. `CMake`：确认存在一个可用 CMake；
-4. `Debuggers`：确认有适用于 x64 的 CDB；没有时回 Visual Studio Installer 增加 Windows 调试工具；
-5. `Kits`：新建或修正 Desktop Kit，Qt version 选 6.11.0，C/C++ compiler 选 MSVC x64，CMake tool 选已检测到的 CMake，device type 选 Desktop。
-
-Kit 是“设备 + 编译器 + Qt 版本 + 调试器 + 构建工具”的一组固定组合。Qt Creator 的官方 Kit 说明见 [Managing kits](https://doc.qt.io/qtcreator/creator-preferences-kits.html)。
-
-## 8. 第一次构建和运行
-
-在 Qt Creator 左下角确认当前配置是：
-
-```text
-项目：mcd_app
-Kit：Desktop Qt 6.11.0 MSVC2022 64bit
-配置：Debug
-```
-
-然后：
-
-1. 点左下角锤子，或按 `Ctrl+B` 构建；
-2. 编译输出应以 `Build finished` / 构建完成结束；
-3. 点绿色三角，或按 `Ctrl+R` 运行；
-4. 出现标题为 `MCU Debug Tool` 的窗口；
-5. 中间显示 `MCU Debug Tool 教学骨架` 和 `Day 0：Qt Widgets 工程已经成功运行`。
-
-看到窗口后，Day 0 就完成了。先不要加按钮、串口或插件。
-
-## 9. 想亲手从空白创建同样骨架
-
-当前分支已经提供可对照的骨架。若想完整练一次 Qt Creator 向导，可在仓库外另建练习目录：
-
-1. `文件/File > 新建项目/New Project`；
-2. `Application > Qt Widgets Application`；
-3. 项目名填 `MCUDebugTool`；
-4. Build system 选 `CMake`；
-5. Details 中 Class name 填 `MainWindow`；
-6. Base class 选 `QMainWindow`；
-7. 勾选 `Generate form`，得到 `MainWindow.ui`；
-8. Kit 只选 `Desktop Qt 6.11.0 MSVC2022 64bit`；
-9. 完成后比较向导生成的四个文件与本分支 `src/app/` 下四个文件。
-
-四个文件的职责：
-
-- `main.cpp`：创建 `QApplication`、主窗口并进入事件循环；
-- `MainWindow.h`：声明主窗口类；
-- `MainWindow.cpp`：构造窗口并调用 `setupUi()`；
-- `MainWindow.ui`：Qt Designer 保存的界面 XML，由 CMake 的 AUTOUIC 自动生成 `ui_MainWindow.h`。
+这里创建的是学生电脑上的本地 Git 仓库，不设置远程地址，也不拉取你的项目。
 
 ## 10. 常见问题
 
 ### `Could not find Qt6Config.cmake`
 
-选错 Kit 或 Qt version 没有注册。回到 `Preferences > Kits > Qt Versions`，添加正确的 `qmake.exe`，不要全局乱加 PATH。
+选错 Kit 或 Qt version 没有注册。回到 `Preferences > Kits > Qt Versions`，添加 `C:\Qt\6.11.0\msvc2022_64\bin\qmake.exe`，不要全局乱加 PATH。
 
 ### `No CMAKE_CXX_COMPILER could be found`
 
@@ -282,32 +374,44 @@ Day 0 不会出现；Day 5 出现时，运行 Qt 安装目录下的 Maintenance 
 
 通常是主程序与插件混用了 MSVC/MinGW、x64/ARM64 或 Debug/Release。后续每天都只使用同一个 Kit。
 
-### Git 报错连接 `127.0.0.1:7890` 失败
+### Qt 安装器下载很慢或组件列表为空
 
-这表示 Git 配置了本地代理，但代理软件没有启动。先检查：
-
-```powershell
-git config --global --get http.proxy
-git config --global --get https.proxy
-```
-
-如果你确定自己不使用代理，可以清除这两项后重试：
+关闭安装器，回到“下载”文件夹重新打开 PowerShell，确认启动命令带有完整的 `--mirror` 参数：
 
 ```powershell
-git config --global --unset http.proxy
-git config --global --unset https.proxy
+.\qt-online-installer-windows-x64-online.exe --mirror https://mirrors.tuna.tsinghua.edu.cn/qt
 ```
 
-如果本来就需要代理，则启动代理软件，不要删除配置。
+不要直接双击安装器后再寻找镜像设置；本教程从命令行启动时就指定镜像。
 
-## 11. Day 0 验收清单
+### Visual Studio 安装完成但 Qt Creator 看不到 MSVC
+
+先关闭 Qt Creator。在 Visual Studio Installer 中确认“使用 C++ 的桌面开发”和 MSVC v143 x64/x86 工具已安装，重启 Windows 后再打开 Qt Creator。
+
+### `git commit` 提示 `Author identity unknown`
+
+说明没有设置 Git 提交署名。重新执行：
+
+```powershell
+git config --global user.name "你的名字"
+git config --global user.email "你的邮箱"
+```
+
+## 11. 第一步验收清单
 
 - [ ] `git --version` 能输出版本号；
 - [ ] 已设置自己的 Git 用户名和邮箱；
-- [ ] 已克隆并进入 `teaching/environment-setup` 分支；
-- [ ] Qt Creator 能打开根目录 `CMakeLists.txt`；
+- [ ] Git 安装包来自清华 TUNA，且数字签名有效；
+- [ ] Visual Studio 2022 的“使用 C++ 的桌面开发”已安装；
+- [ ] Qt 安装器通过清华 TUNA 镜像启动；
+- [ ] `qmake` 输出 Qt 6.11.0；
+- [ ] CMake 和 Ninja 都能输出版本号；
 - [ ] Kit 名称明确包含 Qt 6.11.0、MSVC 2022 和 64-bit；
+- [ ] 学生没有克隆或复制任何现成项目；
+- [ ] 已通过 Qt Creator 向导创建 `C:\QtProjects\MCUDebugTool`；
+- [ ] 工程包含 `CMakeLists.txt`、`main.cpp`、`mainwindow.cpp/.h/.ui`；
 - [ ] Debug 构建无错误；
-- [ ] 主窗口能启动；
-- [ ] 能双击 `MainWindow.ui` 进入 Designer；
-- [ ] `git status` 没有误提交构建目录或 `.user` 文件。
+- [ ] 空白 MainWindow 能启动；
+- [ ] 能双击 `mainwindow.ui` 进入 Designer；
+- [ ] 已建立本地 Git 仓库并完成第一次提交；
+- [ ] `git status` 显示工作区干净，且没有提交构建目录或 `.user` 文件。
