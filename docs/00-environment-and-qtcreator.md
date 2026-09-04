@@ -2,16 +2,66 @@
 
 ## 1. 今天的目标
 
-完成下面四件事就停，不进入串口、插件或 CAN FD 代码：
+完成下面六件事就停，不进入串口、插件或 CAN FD 代码：
 
-1. 安装 MSVC C++ 编译环境；
-2. 安装 Qt 6.11.0、Qt Creator 和必要工具；
-3. 让 Qt Creator 正确识别 `MSVC 2022 64-bit` Kit；
-4. 编译并运行当前最小骨架，看到“MCU Debug Tool 教学骨架”窗口。
+1. 准备 Windows、账号和磁盘空间；
+2. 安装 Git 并完成最基本配置；
+3. 安装 MSVC C++ 编译环境；
+4. 安装 Qt 6.11.0、Qt Creator 和必要工具；
+5. 克隆教学分支并让 Qt Creator 识别 `MSVC 2022 64-bit` Kit；
+6. 编译并运行当前最小骨架，看到“MCU Debug Tool 教学骨架”窗口。
 
 本工程固定使用 Windows x64、Qt 6.11.0、MSVC 2022、C++17 和 CMake。Qt 6.11 官方 Windows 支持表列出的编译器是 MSVC 2022，因此新手环境优先安装 Visual Studio 2022，不以“机器上恰好能编译”为标准。
 
-## 2. 先安装 Visual Studio 2022
+## 2. 准备条件
+
+开始前确认：
+
+- Windows 10 1809 或更高版本，推荐 Windows 11 x64；
+- 当前 Windows 账号有管理员权限；
+- 至少预留 20 GB 可用空间；
+- 网络能访问 GitHub、Qt 和 Microsoft；
+- 准备一个 GitHub 账号，用于后续拉取和推送；
+- 准备一个 Qt Account，Qt Online Installer 登录时使用。
+
+本教程只讲 Windows x64。不要在第一次学习时同时尝试 Linux、ARM64 或 MinGW。
+
+## 3. 安装 Git
+
+官方入口：[Git for Windows](https://git-scm.com/install/windows)。普通 Intel/AMD Windows 电脑下载 x64 Setup，不选 ARM64 和 Portable。
+
+运行安装器时，大部分页面保留默认值。遇到下面选项时这样选：
+
+| 页面或选项 | 选择 |
+| --- | --- |
+| Select Components | 保留 Windows Explorer integration 和 Git Credential Manager |
+| Choosing the default editor | 可保留默认；这套教程主要在 Qt Creator 编辑代码 |
+| Adjusting the name of the initial branch | 选择 `Override...` 并填 `main`，或保留安装器默认 |
+| Adjusting your PATH environment | `Git from the command line and also from 3rd-party software` |
+| Choosing the SSH executable | `Use bundled OpenSSH` |
+| Choosing HTTPS transport backend | `Use the OpenSSL library` |
+| Configuring line ending conversions | `Checkout Windows-style, commit Unix-style line endings` |
+| Choosing the default behavior of git pull | `Fast-forward or merge` |
+| Choosing a credential helper | `Git Credential Manager` |
+| Configuring extra options | 保留 file system caching，其余默认 |
+
+安装完成后关闭原来的 PowerShell，再从开始菜单打开一个新的 PowerShell，输入：
+
+```powershell
+git --version
+```
+
+能看到 `git version 2.x.x` 即安装成功。第一次使用还要设置提交署名，把示例替换为你自己的名字和 GitHub 邮箱：
+
+```powershell
+git config --global user.name "你的名字"
+git config --global user.email "你的GitHub邮箱"
+git config --global --list
+```
+
+最后一条输出中应能找到刚才填写的 `user.name` 和 `user.email`。
+
+## 4. 安装 Visual Studio 2022
 
 安装顺序建议是 Visual Studio 2022 在前、Qt 在后。这样 Qt Creator 首次启动时更容易自动找到编译器。
 
@@ -43,7 +93,7 @@
 
 安装完成后重启一次 Windows。若已经装好 Visual Studio 2022，只需在 Visual Studio Installer 中点“修改”，核对以上项目。
 
-## 3. 安装 Qt 6.11.0
+## 5. 安装 Qt 6.11.0
 
 Qt 官方建议桌面新用户使用图形化 Online Installer；它可以交互选择版本、模块和工具，安装后也能通过 Maintenance Tool 增删组件。
 
@@ -97,9 +147,34 @@ D:\App\Qt\6.11.0\msvc2022_64\lib\cmake\Qt6SerialPort\Qt6SerialPortConfig.cmake
 
 Qt Creator 的实际目录会随安装器版本变化，优先从开始菜单启动，不要照抄某一台电脑的绝对路径。
 
-## 4. 在 Qt Creator 中打开本教学工程
+## 6. 下载教学工程
 
-### 4.1 切换到教学分支
+GitHub 官方把“克隆”定义为把远程仓库完整复制到本机。即使你以前从未使用 Git，也只需要按下面步骤操作。
+
+1. 在 D 盘创建 `D:\Code` 文件夹；没有 D 盘则创建 `C:\Code`；
+2. 双击进入该文件夹；
+3. 点击文件资源管理器顶部地址栏，输入 `powershell` 并按 Enter；
+4. 在打开的蓝色或黑色窗口中逐行执行：
+
+```powershell
+git clone --branch teaching/from-zero https://github.com/lst92991-eng/qt_debug_tools_plus.git
+Set-Location .\qt_debug_tools_plus
+git status
+```
+
+正常结果应包含：
+
+```text
+On branch teaching/from-zero
+Your branch is up to date with 'origin/teaching/from-zero'.
+nothing to commit, working tree clean
+```
+
+如果你已经有本仓库，不要再次克隆到同一个目录，改为在原目录执行下一小节的切换命令。GitHub 的通用克隆步骤见 [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository)。
+
+## 7. 在 Qt Creator 中打开本教学工程
+
+### 7.1 已有仓库时切换到教学分支
 
 在仓库终端执行：
 
@@ -111,7 +186,7 @@ git status
 
 预期最后一条显示工作区干净。完整成品在 `dev`，不要在学习过程中把 `dev` 合并进教学分支。
 
-### 4.2 打开工程
+### 7.2 打开工程
 
 1. 启动 Qt Creator；
 2. 选择 `文件/File > 打开文件或项目/Open File or Project`；
@@ -124,7 +199,7 @@ git status
 
 不要复用曾被 Visual Studio 生成器或另一套 CMake 配置过的 `build` 目录。生成器、CMake 或 Kit 变化时，直接新建一个构建目录最稳妥。
 
-### 4.3 如果没有正确的 Kit
+### 7.3 如果没有正确的 Kit
 
 Qt Creator 官方说明：随 Qt 一起安装时通常能自动识别；如果没有识别，需要在 `编辑/Edit > Preferences > Kits` 手动补齐。
 
@@ -138,7 +213,7 @@ Qt Creator 官方说明：随 Qt 一起安装时通常能自动识别；如果�
 
 Kit 是“设备 + 编译器 + Qt 版本 + 调试器 + 构建工具”的一组固定组合。Qt Creator 的官方 Kit 说明见 [Managing kits](https://doc.qt.io/qtcreator/creator-preferences-kits.html)。
 
-## 5. 第一次构建和运行
+## 8. 第一次构建和运行
 
 在 Qt Creator 左下角确认当前配置是：
 
@@ -158,7 +233,7 @@ Kit：Desktop Qt 6.11.0 MSVC2022 64bit
 
 看到窗口后，Day 0 就完成了。先不要加按钮、串口或插件。
 
-## 6. 想亲手从空白创建同样骨架
+## 9. 想亲手从空白创建同样骨架
 
 当前分支已经提供可对照的骨架。若想完整练一次 Qt Creator 向导，可在仓库外另建练习目录：
 
@@ -179,7 +254,7 @@ Kit：Desktop Qt 6.11.0 MSVC2022 64bit
 - `MainWindow.cpp`：构造窗口并调用 `setupUi()`；
 - `MainWindow.ui`：Qt Designer 保存的界面 XML，由 CMake 的 AUTOUIC 自动生成 `ui_MainWindow.h`。
 
-## 7. 常见问题
+## 10. 常见问题
 
 ### `Could not find Qt6Config.cmake`
 
@@ -201,8 +276,29 @@ Day 0 不会出现；Day 5 出现时，运行 Qt 安装目录下的 Maintenance 
 
 通常是主程序与插件混用了 MSVC/MinGW、x64/ARM64 或 Debug/Release。后续每天都只使用同一个 Kit。
 
-## 8. Day 0 验收清单
+### Git 报错连接 `127.0.0.1:7890` 失败
 
+这表示 Git 配置了本地代理，但代理软件没有启动。先检查：
+
+```powershell
+git config --global --get http.proxy
+git config --global --get https.proxy
+```
+
+如果你确定自己不使用代理，可以清除这两项后重试：
+
+```powershell
+git config --global --unset http.proxy
+git config --global --unset https.proxy
+```
+
+如果本来就需要代理，则启动代理软件，不要删除配置。
+
+## 11. Day 0 验收清单
+
+- [ ] `git --version` 能输出版本号；
+- [ ] 已设置自己的 Git 用户名和邮箱；
+- [ ] 已克隆并进入 `teaching/from-zero` 分支；
 - [ ] Qt Creator 能打开根目录 `CMakeLists.txt`；
 - [ ] Kit 名称明确包含 Qt 6.11.0、MSVC 2022 和 64-bit；
 - [ ] Debug 构建无错误；
