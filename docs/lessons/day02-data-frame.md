@@ -21,7 +21,7 @@
 ### 第一次下载本课
 
 ```powershell
-git clone --branch teaching-day-02-start https://github.com/lst92991-eng/qt_debug_tools_plus.git
+git clone --branch teaching-day-02-start-v2 https://github.com/lst92991-eng/qt_debug_tools_plus.git
 Set-Location .\qt_debug_tools_plus
 git switch -c practice/day02
 git status
@@ -31,7 +31,7 @@ git status
 
 ```powershell
 git fetch origin --tags
-git switch -c practice/day02 teaching-day-02-start
+git switch -c practice/day02 teaching-day-02-start-v2
 git status
 ```
 
@@ -298,7 +298,11 @@ if(BUILD_TESTING)
         tests/sdk/DataFrameTest.cpp
     )
     target_link_libraries(mcd_sdk_data_frame_test PRIVATE mcd_sdk)
-    add_test(NAME sdk_data_frame COMMAND mcd_sdk_data_frame_test)
+    add_test(NAME sdk_data_frame
+        COMMAND "${CMAKE_COMMAND}" -E env
+            "PATH=$<TARGET_FILE_DIR:Qt6::Core>;$ENV{PATH}"
+            "$<TARGET_FILE:mcd_sdk_data_frame_test>"
+    )
 endif()
 ```
 
@@ -311,6 +315,8 @@ mcd_sdk_data_frame_test
 ```
 
 `PUBLIC` include 路径会传给链接 `mcd_sdk` 的 target，因此测试可以写 `#include "sdk/DataFrame.h"`，不需要硬编码电脑绝对路径。
+
+测试命令使用 `cmake -E env`，在启动测试程序前把 Qt6Core 所在目录加到本次进程的 PATH。它只影响这一次测试，不修改 Windows 的全局环境变量；如果省略，直接从普通 PowerShell 运行 CTest 时可能出现 `0xc0000135`。
 
 ## H. 构建和运行测试
 
@@ -380,6 +386,10 @@ target_include_directories(mcd_sdk PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src")
 ### 找不到 `ctest.exe`
 
 打开 Qt 安装目录，确认是否勾选了 CMake。缺失时运行 Qt Maintenance Tool 增加 CMake，再按实际安装路径修改命令。
+
+### 测试退出码是 `0xc0000135`
+
+Windows 没找到测试依赖的 Qt DLL。核对 `add_test()` 是否使用课件中的 `cmake -E env` 完整写法，然后重新 Run CMake；不要把 Qt 的全部 bin 目录永久写入系统 PATH。
 
 ### 测试失败后不知道具体原因
 
